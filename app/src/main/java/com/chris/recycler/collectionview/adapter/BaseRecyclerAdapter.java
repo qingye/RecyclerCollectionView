@@ -1,9 +1,13 @@
-package com.chris.recycler.collectionview;
+package com.chris.recycler.collectionview.adapter;
 
 import android.database.DataSetObservable;
 import android.database.DataSetObserver;
 import android.view.View;
 import android.view.ViewGroup;
+
+import com.chris.recycler.collectionview.constants.ViewType;
+import com.chris.recycler.collectionview.structure.IndexPath;
+import com.chris.recycler.collectionview.structure.SectionPath;
 
 /**
  * Created by chris on 16/9/2.
@@ -68,7 +72,7 @@ public abstract class BaseRecyclerAdapter {
     }
 
     /************************************************************************************************
-     * Section, each section has lots of items
+     * Section, each section has lots of items(Header, Item, Footer)
      ************************************************************************************************/
     public int getSections() {
         return 1;

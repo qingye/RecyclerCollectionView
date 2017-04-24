@@ -1,4 +1,4 @@
-package com.chris.recycler.collectionview;
+package com.chris.recycler.collectionview.activity;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -7,6 +7,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import com.chris.recycler.collectionview.R;
+import com.chris.recycler.collectionview.adapter.BaseRecyclerAdapter;
+import com.chris.recycler.collectionview.constants.ViewType;
+import com.chris.recycler.collectionview.structure.IndexPath;
 
 /**
  * Created by chris on 16/9/1.

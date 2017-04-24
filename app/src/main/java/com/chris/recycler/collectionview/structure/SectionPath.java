@@ -1,4 +1,6 @@
-package com.chris.recycler.collectionview;
+package com.chris.recycler.collectionview.structure;
+
+import com.chris.recycler.collectionview.constants.ViewType;
 
 /**
  * Created by chris on 16/9/13.

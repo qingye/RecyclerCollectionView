@@ -4,7 +4,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
 import com.chris.recycler.collectionview.R;
-import com.chris.recycler.collectionview.RecyclerAdapter;
 import com.chris.recycler.collectionview.RecyclerCollectionView;
 
 public class MainActivity extends AppCompatActivity {

@@ -1,5 +1,7 @@
 package com.chris.recycler.collectionview;
 
+import com.chris.recycler.collectionview.structure.SectionPath;
+
 /**
  * Created by chris on 16/9/14.
  */

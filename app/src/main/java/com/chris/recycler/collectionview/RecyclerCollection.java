@@ -2,6 +2,9 @@ package com.chris.recycler.collectionview;
 
 import android.view.View;
 
+import com.chris.recycler.collectionview.constants.ViewType;
+import com.chris.recycler.collectionview.structure.SectionPath;
+
 import java.util.ArrayList;
 
 /**
@@ -73,7 +76,7 @@ public class RecyclerCollection {
         }
 
         int sectionType = lp.getSectionType();
-        if (sectionType >= ViewType.VIEW_HEADER) {
+        if (sectionType >= ViewType.VIEW_HEADER_REFRESH) {
             return;
         }
 
@@ -119,7 +122,7 @@ public class RecyclerCollection {
             /***************************************************************************************
              * Don't put header or footer views into the scrap heap
              ***************************************************************************************/
-            if (lp != null && (lp.getSectionType() < ViewType.VIEW_HEADER)) {
+            if (lp != null && (lp.getSectionType() < ViewType.VIEW_HEADER_REFRESH)) {
                 /***********************************************************************************
                  * RecyclerCollectionView's header & footer will not scrap
                  * Only section(header, footer, item) can scrap

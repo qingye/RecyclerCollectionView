@@ -1,4 +1,4 @@
-package com.chris.recycler.collectionview;
+package com.chris.recycler.collectionview.constants;
 
 /**
  * Created by chris on 16/9/6.
@@ -13,8 +13,8 @@ public class ViewType {
     /******************************************************************************************
      * RecyclerCollectionView's header & footer
      ******************************************************************************************/
-    public static final int VIEW_HEADER = 0x100;
-    public static final int VIEW_FOOTER = 0x101;
+//    public static final int VIEW_HEADER = 0x100;
+//    public static final int VIEW_FOOTER = 0x101;
     public static final int VIEW_HEADER_REFRESH = 0x102;
     public static final int VIEW_FOOTER_REFRESH = 0x103;
 

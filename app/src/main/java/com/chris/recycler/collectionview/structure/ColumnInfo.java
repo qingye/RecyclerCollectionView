@@ -1,4 +1,4 @@
-package com.chris.recycler.collectionview;
+package com.chris.recycler.collectionview.structure;
 
 /**
  * Created by chris on 16/9/18.

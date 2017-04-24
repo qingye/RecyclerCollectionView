@@ -11,6 +11,16 @@ import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 
+import com.chris.recycler.collectionview.adapter.AdapterViewDataSetObserver;
+import com.chris.recycler.collectionview.adapter.BaseRecyclerAdapter;
+import com.chris.recycler.collectionview.constants.RecyclerCollectionDirection;
+import com.chris.recycler.collectionview.constants.ScrollMode;
+import com.chris.recycler.collectionview.constants.ViewType;
+import com.chris.recycler.collectionview.structure.ColumnInfo;
+import com.chris.recycler.collectionview.structure.IndexPath;
+import com.chris.recycler.collectionview.structure.Point;
+import com.chris.recycler.collectionview.structure.SectionPath;
+
 /**
  * Created by chris on 16/9/1.
  */
@@ -739,7 +749,26 @@ public class RecyclerCollectionView extends ViewGroup {
         int deltaX = 0;
         int deltaY = (int) (lastPoint.y - event.getY());
         lastPoint.setPoint((int) event.getX(), (int) event.getY());
-        trackScroll(deltaX, deltaY);
+        boolean cantScroll = trackScroll(deltaX, deltaY);
+
+        /********************************************************************************************
+         * cantScroll = true means at top or at bottom
+         ********************************************************************************************/
+        if (cantScroll) {
+            if (canScrollDown(deltaY)) {
+                /************************************************************************************
+                 * Pull Down For Refresh
+                 ************************************************************************************/
+//                View view = getChildAt(0);
+//                LayoutParams lp = (LayoutParams) view.getLayoutParams();
+//                lp.height = view.getHeight() - deltaY;
+//                view.setLayoutParams(lp);
+            } else if (canScrollUp(deltaY)) {
+                /************************************************************************************
+                 * Pull Up For Load
+                 ************************************************************************************/
+            }
+        }
     }
 
     /************************************************************************************************
@@ -797,8 +826,20 @@ public class RecyclerCollectionView extends ViewGroup {
      * First, scrap the view that out of the screen
      * Second, layout new view that will in the screen
      ************************************************************************************************/
-    public boolean trackScroll(int deltaX, int deltaY) {
+    private boolean canScrollDown(int deltaY) {
         int firstPosition = this.firstPosition;
+        int firstTop = getChildAt(0).getTop();
+        return (firstPosition == 0 && firstTop >= getPaddingTop() && deltaY <= 0);
+    }
+
+    private boolean canScrollUp(int deltaY) {
+        int firstPosition = this.firstPosition;
+        int childCount = getChildCount();
+        int lastBottom = getChildAt(childCount - 1).getBottom();
+        return (firstPosition + childCount == adapter.getCount() && lastBottom <= getHeight() - getPaddingBottom() && deltaY >= 0);
+    }
+
+    public boolean trackScroll(int deltaX, int deltaY) {
         int childCount = getChildCount();
         int firstTop = getChildAt(0).getTop();
         int lastBottom = getChildAt(childCount - 1).getBottom();
@@ -809,8 +850,8 @@ public class RecyclerCollectionView extends ViewGroup {
             column = ((LayoutParams) getChildAt(0).getLayoutParams()).getColumn();
         }
 
-        boolean cantScrollDown = (firstPosition == 0 && firstTop >= getPaddingTop() && deltaY <= 0);
-        boolean cantScrollUp = (firstPosition + childCount == adapter.getCount() && lastBottom <= getHeight() - getPaddingBottom() && deltaY >= 0);
+        boolean cantScrollDown = canScrollDown(deltaY);
+        boolean cantScrollUp = canScrollUp(deltaY);
         if (cantScrollDown || cantScrollUp) {
             return deltaY != 0;
         }

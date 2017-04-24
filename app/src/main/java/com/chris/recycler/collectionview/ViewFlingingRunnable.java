@@ -4,6 +4,9 @@ import android.support.v4.view.ViewCompat;
 import android.view.animation.LinearInterpolator;
 import android.widget.OverScroller;
 
+import com.chris.recycler.collectionview.constants.ScrollMode;
+import com.chris.recycler.collectionview.structure.Point;
+
 /**
  * Created by chris on 16/9/5.
  */
