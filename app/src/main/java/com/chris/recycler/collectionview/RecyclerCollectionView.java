@@ -11,8 +11,8 @@ import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 
-import com.chris.recycler.collectionview.adapter.AdapterViewDataSetObserver;
-import com.chris.recycler.collectionview.adapter.BaseRecyclerAdapter;
+import com.chris.recycler.collectionview.adapter.observer.AdapterViewDataSetObserver;
+import com.chris.recycler.collectionview.adapter.base.BaseRecyclerCollectionAdapter;
 import com.chris.recycler.collectionview.constants.RecyclerCollectionDirection;
 import com.chris.recycler.collectionview.constants.ScrollMode;
 import com.chris.recycler.collectionview.constants.ViewType;
@@ -73,7 +73,7 @@ public class RecyclerCollectionView extends ViewGroup {
      ***********************************************************************************************/
     private RecyclerCollection recyclerCollection = new RecyclerCollection(this);
     private AdapterViewDataSetObserver dataSetObserver = null;
-    private BaseRecyclerAdapter adapter = null;
+    private BaseRecyclerCollectionAdapter adapter = null;
 
     public RecyclerCollectionView(Context context) {
         this(context, null);
@@ -105,7 +105,7 @@ public class RecyclerCollectionView extends ViewGroup {
         resetVelocityTracker();
     }
 
-    public void setAdapter(BaseRecyclerAdapter adapter) {
+    public void setAdapter(BaseRecyclerCollectionAdapter adapter) {
         if (this.adapter != null && dataSetObserver != null) {
             this.adapter.unregisterDataSetObserver(dataSetObserver);
         }
@@ -123,7 +123,7 @@ public class RecyclerCollectionView extends ViewGroup {
         requestLayout();
     }
 
-    public BaseRecyclerAdapter getAdapter() {
+    public BaseRecyclerCollectionAdapter getAdapter() {
         return adapter;
     }
 

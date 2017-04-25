@@ -9,18 +9,18 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.chris.recycler.collectionview.R;
-import com.chris.recycler.collectionview.adapter.BaseRecyclerAdapter;
+import com.chris.recycler.collectionview.adapter.base.BaseRecyclerCollectionAdapter;
 import com.chris.recycler.collectionview.constants.ViewType;
 import com.chris.recycler.collectionview.structure.IndexPath;
 
 /**
  * Created by chris on 16/9/1.
  */
-public class RecyclerAdapter extends BaseRecyclerAdapter {
+public class RecyclerCollectionAdapter extends BaseRecyclerCollectionAdapter {
 
     private Context context = null;
 
-    public RecyclerAdapter(Context context) {
+    public RecyclerCollectionAdapter(Context context) {
         this.context = context;
     }
 
@@ -29,15 +29,22 @@ public class RecyclerAdapter extends BaseRecyclerAdapter {
         return 30;
     }
 
+    @Override
     public int getHeaderOrFooterInSection(int sectionType, int section) {
         int count = 0;
         switch (sectionType) {
             case ViewType.SECTION_HEADER:
-                count = 1;
+                if (section != 1) {
+                    count = 1;
+                }
                 break;
 
             case ViewType.SECTION_FOOTER:
-                count = 3;
+                if (section > 1) {
+                    count = 3;
+                } else {
+                    count = 2;
+                }
                 break;
         }
         return count;
@@ -65,11 +72,11 @@ public class RecyclerAdapter extends BaseRecyclerAdapter {
                 break;
 
             case 3:
-                column = 3;
+                column = 4;
                 break;
 
             default:
-                column = 3;
+                column = 5;
                 break;
         }
         return column;
@@ -161,7 +168,7 @@ public class RecyclerAdapter extends BaseRecyclerAdapter {
         itemView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-//                Log.e("TAG", "[RecyclerAdapter] onTouch true");
+//                Log.e("TAG", "[RecyclerCollectionAdapter] onTouch true");
                 return true;
             }
         });

@@ -1,4 +1,4 @@
-package com.chris.recycler.collectionview.adapter;
+package com.chris.recycler.collectionview.adapter.observer;
 
 import android.database.DataSetObserver;
 import android.util.Log;

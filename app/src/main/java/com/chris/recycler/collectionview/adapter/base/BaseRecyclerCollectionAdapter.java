@@ -1,4 +1,4 @@
-package com.chris.recycler.collectionview.adapter;
+package com.chris.recycler.collectionview.adapter.base;
 
 import android.database.DataSetObservable;
 import android.database.DataSetObserver;
@@ -12,7 +12,7 @@ import com.chris.recycler.collectionview.structure.SectionPath;
 /**
  * Created by chris on 16/9/2.
  */
-public abstract class BaseRecyclerAdapter {
+public abstract class BaseRecyclerCollectionAdapter {
 
     private final DataSetObservable observable = new DataSetObservable();
 
@@ -31,7 +31,7 @@ public abstract class BaseRecyclerAdapter {
     /************************************************************************************************
      * Total counts
      ************************************************************************************************/
-    public final int getCount() {
+    public int getCount() {
         int total = 0;
         for (int i = 0; i < getSections(); i++) {
             for (int sectionType = ViewType.SECTION_HEADER; sectionType <= ViewType.SECTION_FOOTER; sectionType++) {
@@ -41,7 +41,7 @@ public abstract class BaseRecyclerAdapter {
         return total;
     }
 
-    public final int getPosition(SectionPath sectionPath) {
+    public int getPosition(SectionPath sectionPath) {
         int position = 0;
         for (int i = 0; i < sectionPath.getIndexPath().getSection(); i++) {
             for (int sectionType = ViewType.SECTION_HEADER; sectionType <= ViewType.SECTION_FOOTER; sectionType++) {
@@ -75,7 +75,7 @@ public abstract class BaseRecyclerAdapter {
      * Section, each section has lots of items(Header, Item, Footer)
      ************************************************************************************************/
     public int getSections() {
-        return 1;
+        return 0;
     }
 
     /************************************************************************************************
@@ -106,9 +106,13 @@ public abstract class BaseRecyclerAdapter {
         return count;
     }
 
-    public abstract int getHeaderOrFooterInSection(int sectionType, int section);
+    public int getHeaderOrFooterInSection(int sectionType, int section){
+        return 0;
+    }
 
-    public abstract int getItemsInSection(int section);
+    public int getItemsInSection(int section){
+        return 0;
+    }
 
     /************************************************************************************************
      * View type for reuse
@@ -126,6 +130,11 @@ public abstract class BaseRecyclerAdapter {
 
             case ViewType.SECTION_FOOTER:
                 viewType = 0;
+                break;
+
+            case ViewType.VIEW_HEADER_REFRESH:
+            case ViewType.VIEW_FOOTER_REFRESH:
+            default:
                 break;
         }
         return viewType;

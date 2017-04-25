@@ -9,7 +9,7 @@ import com.chris.recycler.collectionview.RecyclerCollectionView;
 public class MainActivity extends AppCompatActivity {
 
     private RecyclerCollectionView recyclerCollectionView = null;
-    private RecyclerAdapter adapter = null;
+    private RecyclerCollectionAdapter adapter = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -19,7 +19,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initView() {
-        adapter = new RecyclerAdapter(this);
+        adapter = new RecyclerCollectionAdapter(this);
         recyclerCollectionView = (RecyclerCollectionView) findViewById(R.id.recyclerCollectionView);
         recyclerCollectionView.setAdapter(adapter);
     }
