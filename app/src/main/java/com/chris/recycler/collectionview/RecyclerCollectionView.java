@@ -11,8 +11,9 @@ import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 
-import com.chris.recycler.collectionview.adapter.observer.AdapterViewDataSetObserver;
+import com.chris.recycler.collectionview.adapter.WrapperRecyclerCollectionAdapter;
 import com.chris.recycler.collectionview.adapter.base.BaseRecyclerCollectionAdapter;
+import com.chris.recycler.collectionview.adapter.observer.AdapterViewDataSetObserver;
 import com.chris.recycler.collectionview.constants.RecyclerCollectionDirection;
 import com.chris.recycler.collectionview.constants.ScrollMode;
 import com.chris.recycler.collectionview.constants.ViewType;
@@ -44,8 +45,14 @@ public class RecyclerCollectionView extends ViewGroup {
     /***********************************************************************************************
      * Visible views' first real-position
      ***********************************************************************************************/
+    private int mPosY = 0;
     public int firstPosition = 0;
     public int touchPosition = 0;
+
+    /***********************************************************************************************
+     * Refresh Attributes
+     ***********************************************************************************************/
+    private float coefficient = 0.3f;
 
     /***********************************************************************************************
      * TouchEvents when touch down, move, up/cancel
@@ -73,7 +80,7 @@ public class RecyclerCollectionView extends ViewGroup {
      ***********************************************************************************************/
     private RecyclerCollection recyclerCollection = new RecyclerCollection(this);
     private AdapterViewDataSetObserver dataSetObserver = null;
-    private BaseRecyclerCollectionAdapter adapter = null;
+    private WrapperRecyclerCollectionAdapter adapter = null;
 
     public RecyclerCollectionView(Context context) {
         this(context, null);
@@ -103,23 +110,21 @@ public class RecyclerCollectionView extends ViewGroup {
         minVelocity = configuration.getScaledMinimumFlingVelocity();
         overflingDistance = configuration.getScaledOverflingDistance();
         resetVelocityTracker();
+        mPosY = getPaddingTop();
     }
 
     public void setAdapter(BaseRecyclerCollectionAdapter adapter) {
         if (this.adapter != null && dataSetObserver != null) {
             this.adapter.unregisterDataSetObserver(dataSetObserver);
         }
-        this.adapter = adapter;
+        this.adapter = new WrapperRecyclerCollectionAdapter(getContext(), adapter);
+        dataSetObserver = new AdapterViewDataSetObserver();
+        this.adapter.registerDataSetObserver(dataSetObserver);
 
-        if (this.adapter != null) {
-            dataSetObserver = new AdapterViewDataSetObserver();
-            this.adapter.registerDataSetObserver(dataSetObserver);
-
-            recyclerCollection.setViewTypeCount(
-                    this.adapter.getSectionHeaderTypeCount(),
-                    this.adapter.getSectionFooterTypeCount(),
-                    this.adapter.getSectionItemTypeCount());
-        }
+        recyclerCollection.setViewTypeCount(
+                this.adapter.getSectionHeaderTypeCount(),
+                this.adapter.getSectionFooterTypeCount(),
+                this.adapter.getSectionItemTypeCount());
         requestLayout();
     }
 
@@ -232,8 +237,7 @@ public class RecyclerCollectionView extends ViewGroup {
 
         switch (direction) {
             case RecyclerCollectionDirection.FROM_TOP_TO_BOTTOM:
-                int posY = getPaddingTop();
-                fillDown(new SectionPath(ViewType.SECTION_HEADER, new IndexPath(0, 0)), posY);
+                fillDown(findSectionByPosition(firstPosition), mPosY);
                 break;
 
             case RecyclerCollectionDirection.FROM_BOTTOM_TO_TOP:
@@ -301,7 +305,7 @@ public class RecyclerCollectionView extends ViewGroup {
      * Correct Top or Bottom Gap when scroll to the first or last child:
      * 1. First child's top may be too low that has a gap;
      * - If has, we need to adjust it and do fillGap(down = false) again
-     *
+     * <p>
      * 2. Last child's bottom may be too high that has a gap;
      * - If has, we need to adjust it and do fillGap(down = true) again
      ************************************************************************************************/
@@ -336,12 +340,15 @@ public class RecyclerCollectionView extends ViewGroup {
             int start = sectionPath.indexPath.section;
             for (int i = start; i < sections; i++) {
                 int startType = i == start ? sectionPath.sectionType : ViewType.SECTION_HEADER;
-                for (int sectionType = startType; sectionType <= ViewType.SECTION_FOOTER; sectionType++) {
+                for (int sectionType = startType; sectionType <= ViewType.VIEW_FOOTER_REFRESH; sectionType++) {
                     int startItem = (i == start && sectionType == startType) ? sectionPath.indexPath.item : 0;
                     posY = fillSectionView(i, sectionType, startItem, posY, maxHeight, true);
                     if (posY > maxHeight) {
                         break;
                     }
+                }
+                if (posY > maxHeight) {
+                    break;
                 }
             }
         }
@@ -355,7 +362,7 @@ public class RecyclerCollectionView extends ViewGroup {
         if (adapter != null && adapter.getCount() > 0) {
             int start = sectionPath.indexPath.section;
             for (int i = start; i >= 0; i--) {
-                int startType = i == start ? sectionPath.sectionType : ViewType.SECTION_FOOTER;
+                int startType = i == start ? sectionPath.sectionType : ViewType.VIEW_FOOTER_REFRESH;
                 for (int sectionType = startType; sectionType >= ViewType.SECTION_HEADER; sectionType--) {
                     if (posY < top) {
                         break;
@@ -363,6 +370,9 @@ public class RecyclerCollectionView extends ViewGroup {
                     int items = adapter.getSectionItemInSection(sectionType, i) - 1;
                     int startItem = (i == start && sectionType == startType) ? sectionPath.indexPath.item : items;
                     posY = fillSectionView(i, sectionType, startItem, posY, top, false);
+                }
+                if (posY < top) {
+                    break;
                 }
             }
             firstPosition = adapter.getPosition(((LayoutParams) getChildAt(0).getLayoutParams()).getSectionPath());
@@ -416,7 +426,9 @@ public class RecyclerCollectionView extends ViewGroup {
             }
 
             View child = makeAndAttachView(sectionPath, posY, down);
-            if (child != null) {
+            if (down && viewType == ViewType.SECTION_ITEM && column > 1 && j + 1 == items) {
+                posY = getChildAt(findBottomIndex(true, sectionPath)).getBottom();
+            } else if (child != null) {
                 posY += down ? child.getMeasuredHeight() : -child.getMeasuredHeight();
             }
         }
@@ -446,7 +458,7 @@ public class RecyclerCollectionView extends ViewGroup {
         View scrapView = recyclerCollection.getScrapView(sectionPath);
         View child = adapter.getSectionView(sectionPath, scrapView, this);
         if (scrapView != null && scrapView != child) {
-            throw new RuntimeException("Forgot to reused?");
+            throw new RuntimeException("forgot to reused?");
         }
         if (child != null) {
             setSectionItemLayoutParam(child, sectionPath);
@@ -495,6 +507,28 @@ public class RecyclerCollectionView extends ViewGroup {
     }
 
     /************************************************************************************************
+     * Find Section (Header, Item, Footer) index by Position
+     ************************************************************************************************/
+    private SectionPath findSectionByPosition(int position) {
+        SectionPath sp = null;
+        int sections = adapter.getSections();
+        for (int i = 0; i < sections; i++) {
+            for (int sectionType = ViewType.SECTION_HEADER; sectionType <= ViewType.VIEW_FOOTER_REFRESH; sectionType++) {
+                int count = adapter.getSectionItemInSection(sectionType, i);
+                if (position - count <= 0) {
+                    sp = new SectionPath(sectionType, new IndexPath(i, position));
+                    if (sp.sectionType == ViewType.SECTION_HEADER && sp.indexPath.section == 0) {
+                        mPosY = getPaddingTop();
+                    }
+                    return sp;
+                }
+                position -= count;
+            }
+        }
+        return null;
+    }
+
+    /************************************************************************************************
      * Find the view index that in the max/min height of the column
      ************************************************************************************************/
     private int findTopIndex(SectionPath sectionPath) {
@@ -533,7 +567,7 @@ public class RecyclerCollectionView extends ViewGroup {
 
     private int findBottomIndex(boolean max, SectionPath sectionPath) {
         final int childCount = getChildCount();
-        ColumnInfo[] info = initColumnInfo(sectionPath, -1);
+        ColumnInfo[] info = initColumnInfo(sectionPath, -Integer.MAX_VALUE);
 
         /*******************************************************************************************
          * We only check the SectionItem in the same Section but differentiate [findTopIndex]
@@ -580,13 +614,20 @@ public class RecyclerCollectionView extends ViewGroup {
     private ColumnInfo findRelativeIndex(boolean down, SectionPath sectionPath, int items) {
         ColumnInfo[] info = initColumnInfo(sectionPath, -1);
         SectionPath path = new SectionPath(sectionPath);
+        int childCount = getChildCount();
         View view = null;
         int i = 0;
         ColumnInfo ret = null;
         while (i < items) {
             path.indexPath.item = i;
-            view = makeView(path);
-            measureChild(view);
+
+            if (down && childCount > items) {
+                view = getChildAt(childCount - items + i);
+            } else {
+                view = makeView(path);
+                measureChild(view);
+                recyclerCollection.addScrapView(view);
+            }
 
             int col = findMinHeightIndex(info);
             if (!down) {
@@ -755,19 +796,7 @@ public class RecyclerCollectionView extends ViewGroup {
          * cantScroll = true means at top or at bottom
          ********************************************************************************************/
         if (cantScroll) {
-            if (canScrollDown(deltaY)) {
-                /************************************************************************************
-                 * Pull Down For Refresh
-                 ************************************************************************************/
-//                View view = getChildAt(0);
-//                LayoutParams lp = (LayoutParams) view.getLayoutParams();
-//                lp.height = view.getHeight() - deltaY;
-//                view.setLayoutParams(lp);
-            } else if (canScrollUp(deltaY)) {
-                /************************************************************************************
-                 * Pull Up For Load
-                 ************************************************************************************/
-            }
+            trackRefresh(deltaX, deltaY);
         }
     }
 
@@ -781,15 +810,18 @@ public class RecyclerCollectionView extends ViewGroup {
             int lastBottom = getChildAt(childCount - 1).getBottom();
             if (firstPosition == 0 && firstTop >= getPaddingTop() && firstPosition + childCount < adapter.getCount() &&
                     lastBottom <= getBottom()) {
-                Log.e("SCROLL_STATE_IDLE");
                 return;
+            }
+
+            if (adapter.getRefreshHeader() != null || adapter.getRefreshFooter() != null) {
+                releaseRefresh();
             }
 
             /***************************************************************************************
              * Compute velocity: initVelocityY < 0 = down; > 0 = up
              ***************************************************************************************/
             velocityTracker.computeCurrentVelocity(1000, maxVelocity);
-            int initVelocityX = 0;
+            int initVelocityX = (int) velocityTracker.getXVelocity();
             int initVelocityY = (int) velocityTracker.getYVelocity();
             if (getScrollY() != 0) {
                 if (Math.abs(initVelocityY) < minVelocity) {
@@ -822,9 +854,7 @@ public class RecyclerCollectionView extends ViewGroup {
     }
 
     /************************************************************************************************
-     * Track scroll:
-     * First, scrap the view that out of the screen
-     * Second, layout new view that will in the screen
+     * Check
      ************************************************************************************************/
     private boolean canScrollDown(int deltaY) {
         int firstPosition = this.firstPosition;
@@ -839,68 +869,41 @@ public class RecyclerCollectionView extends ViewGroup {
         return (firstPosition + childCount == adapter.getCount() && lastBottom <= getHeight() - getPaddingBottom() && deltaY >= 0);
     }
 
-    public boolean trackScroll(int deltaX, int deltaY) {
-        int childCount = getChildCount();
-        int firstTop = getChildAt(0).getTop();
-        int lastBottom = getChildAt(childCount - 1).getBottom();
-        int column = 0;
-        if (deltaY > 0) {
-            column = ((LayoutParams) getChildAt(childCount - 1).getLayoutParams()).getColumn();
-        } else {
-            column = ((LayoutParams) getChildAt(0).getLayoutParams()).getColumn();
-        }
-
-        boolean cantScrollDown = canScrollDown(deltaY);
-        boolean cantScrollUp = canScrollUp(deltaY);
-        if (cantScrollDown || cantScrollUp) {
-            return deltaY != 0;
-        }
-
-        /*******************************************************************************************
-         * int[]{start, count}
-         *******************************************************************************************/
-        int[] startAndCount = null;
-        if (direction <= RecyclerCollectionDirection.FROM_BOTTOM_TO_TOP) {
-            startAndCount = trackUpDown(deltaY, childCount);
-        }
-
-        /*******************************************************************************************
-         * Frozen layout till finish to recycler and re-layout children
-         *******************************************************************************************/
-        blockLayoutRequests = true;
-
-        if (startAndCount != null) {
-            if (startAndCount[1] > 0) {
-                detachViewsFromParent(startAndCount[0], startAndCount[1]);
+    private boolean canScrollRefreshHeader() {
+        boolean ret = false;
+        if (firstPosition == 0 && adapter.getRefreshHeader() != null) {
+            LayoutParams lp = (LayoutParams) getChildAt(0).getLayoutParams();
+            if (lp.height > 0) {
+                ret = true;
             }
         }
+        return ret;
+    }
 
-        /*******************************************************************************************
-         * invalidate before moving the children to avoid unnecessary invalidate
-         * calls to bubble up from the children all the way to the top
-         *******************************************************************************************/
-        if (!awakenScrollBars()) {
-            invalidate();
+    private boolean canScrollRefreshFooter() {
+        boolean ret = false;
+        int childCount = getChildCount();
+        if (firstPosition + childCount == adapter.getCount() && adapter.getRefreshFooter() != null) {
+            LayoutParams lp = (LayoutParams) getChildAt(childCount - 1).getLayoutParams();
+            if (lp.height > 0) {
+                ret = true;
+            }
         }
+        return ret;
+    }
 
-        /*******************************************************************************************
-         * Adjust child's top & bottom / left & right
-         *******************************************************************************************/
-        if (direction <= RecyclerCollectionDirection.FROM_BOTTOM_TO_TOP) {
-            offsetChildrenTopAndBottom(-deltaY);
-        } else if (direction >= RecyclerCollectionDirection.FROM_LEFT_TO_RIGHT) {
-            offsetChildrenLeftAndRight(-deltaX);
+    /************************************************************************************************
+     * Track scroll:
+     * First, scrap the view that out of the screen
+     * Second, layout new view that will in the screen
+     ************************************************************************************************/
+    public boolean trackScroll(int deltaX, int deltaY) {
+        boolean cantScrollDown = canScrollDown(deltaY);
+        boolean cantScrollUp = canScrollUp(deltaY);
+        if (cantScrollDown || cantScrollUp || canScrollRefreshHeader() || canScrollRefreshFooter()) {
+            return deltaY != 0;
         }
-
-        final int spaceAbove = getPaddingTop() - firstTop;
-        final int end = getHeight() - getPaddingBottom();
-        final int spaceBelow = lastBottom - end;
-        int absDeltaY = Math.abs(deltaY);
-        if (spaceAbove < absDeltaY || spaceBelow < absDeltaY || column > 1) {
-            fillYGap(deltaY > 0);
-        }
-
-        blockLayoutRequests = false;
+        doScroll(deltaX, deltaY);
         return false;
     }
 
@@ -952,6 +955,133 @@ public class RecyclerCollectionView extends ViewGroup {
         int count = 0;
 
         return new int[]{start, count};
+    }
+
+    /************************************************************************************************
+     * offset children's top, bottom, left, right
+     ************************************************************************************************/
+    private void doScroll(int deltaX, int deltaY) {
+        int childCount = getChildCount();
+        int firstTop = getChildAt(0).getTop();
+        int lastBottom = getChildAt(childCount - 1).getBottom();
+        int column = 0;
+        if (deltaY > 0) {
+            column = ((LayoutParams) getChildAt(childCount - 1).getLayoutParams()).getColumn();
+        } else {
+            column = ((LayoutParams) getChildAt(0).getLayoutParams()).getColumn();
+        }
+
+        /*******************************************************************************************
+         * int[]{start, count}
+         *******************************************************************************************/
+        int[] startAndCount = null;
+        if (direction <= RecyclerCollectionDirection.FROM_BOTTOM_TO_TOP) {
+            startAndCount = trackUpDown(deltaY, childCount);
+        }
+
+        /*******************************************************************************************
+         * Frozen layout till finish to recycler and re-layout children
+         *******************************************************************************************/
+        blockLayoutRequests = true;
+
+        if (startAndCount != null) {
+            if (startAndCount[1] > 0) {
+                detachViewsFromParent(startAndCount[0], startAndCount[1]);
+            }
+        }
+
+        /*******************************************************************************************
+         * invalidate before moving the children to avoid unnecessary invalidate
+         * calls to bubble up from the children all the way to the top
+         *******************************************************************************************/
+        if (!awakenScrollBars()) {
+            invalidate();
+        }
+
+        /*******************************************************************************************
+         * Adjust child's top & bottom / left & right
+         *******************************************************************************************/
+        if (direction <= RecyclerCollectionDirection.FROM_BOTTOM_TO_TOP) {
+            offsetChildrenTopAndBottom(-deltaY);
+        } else if (direction >= RecyclerCollectionDirection.FROM_LEFT_TO_RIGHT) {
+            offsetChildrenLeftAndRight(-deltaX);
+        }
+
+        final int spaceAbove = getPaddingTop() - firstTop;
+        final int end = getHeight() - getPaddingBottom();
+        final int spaceBelow = lastBottom - end;
+        int absDeltaY = Math.abs(deltaY);
+        if (spaceAbove < absDeltaY || spaceBelow < absDeltaY || column > 1) {
+            fillYGap(deltaY > 0);
+        }
+
+        blockLayoutRequests = false;
+    }
+
+    /************************************************************************************************
+     * At Top or Bottom, then check if have RefreshHeader or RefreshFooter
+     ************************************************************************************************/
+    private void trackRefresh(int deltaX, int deltaY) {
+        if (adapter.getRefreshHeader() != null || adapter.getRefreshFooter() != null) {
+            if (direction <= RecyclerCollectionDirection.FROM_BOTTOM_TO_TOP) {
+                View view = null;
+                int dy = (int) (deltaY * coefficient);
+                if (canScrollDown(deltaY) || canScrollRefreshHeader()) {
+                    /*******************************************************************************
+                     * Pull Down For Refresh
+                     *******************************************************************************/
+                    mPosY = getPaddingTop();
+                    view = getChildAt(0);
+                } else if (canScrollUp(deltaY) || canScrollRefreshFooter()) {
+                    /*******************************************************************************
+                     * Pull Up For Load
+                     *******************************************************************************/
+                    mPosY = getChildAt(0).getTop() - dy;
+                    view = getChildAt(getChildCount() - 1);
+                }
+
+                if (view != null) {
+                    LayoutParams lp = (LayoutParams) view.getLayoutParams();
+                    lp.height = firstPosition == 0 ? view.getHeight() - dy : view.getHeight() + dy;
+                    view.setLayoutParams(lp);
+                }
+            }
+        }
+    }
+
+    private void releaseRefresh() {
+        View view = null;
+        int childCount = getChildCount();
+
+        if (childCount > 0 && (adapter.getRefreshHeader() != null || adapter.getRefreshFooter() != null)) {
+            if (direction <= RecyclerCollectionDirection.FROM_BOTTOM_TO_TOP) {
+                int offsetY = 0;
+
+                if (firstPosition == 0) {
+                    view = getChildAt(0);
+                    LayoutParams lp = (LayoutParams) view.getLayoutParams();
+                    lp.height = 0;
+                    view.setLayoutParams(lp);
+                } else if (firstPosition + childCount == adapter.getCount()) {
+                    view = getChildAt(getChildCount() - 1);
+                    LayoutParams lp = (LayoutParams) view.getLayoutParams();
+
+                    offsetY = lp.height;
+                    /*******************************************************************************
+                     * adjust bottom because of height
+                     *******************************************************************************/
+                    view.setBottom(view.getBottom() - lp.height);
+
+                    lp.height = 0;
+                    view.setLayoutParams(lp);
+                    /*******************************************************************************
+                     * adjust children's bottom because of RefreshFooter's height
+                     *******************************************************************************/
+                    doScroll(0, offsetY);
+                }
+                mPosY = getChildAt(0).getTop();
+            }
+        }
     }
 
     /************************************************************************************************
@@ -1133,6 +1263,9 @@ public class RecyclerCollectionView extends ViewGroup {
         params.setViewType(adapter.getViewTypeBySectionType(sectionPath.sectionType, sectionPath.indexPath));
         if (sectionPath.sectionType == ViewType.SECTION_ITEM) {
             params.setColumn(adapter.getSectionItemColumn(sectionPath.indexPath.section));
+        }
+        if (sectionPath.sectionType >= ViewType.VIEW_HEADER_REFRESH && params.height <= 0) {
+            params.height = 0;
         }
         if (lp != params) {
             child.setLayoutParams(params);
