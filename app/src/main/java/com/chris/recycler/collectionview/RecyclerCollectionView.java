@@ -132,6 +132,9 @@ public class RecyclerCollectionView extends ViewGroup {
         return adapter;
     }
 
+    /************************************************************************************************
+     * System Override Methods
+     ************************************************************************************************/
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
@@ -223,7 +226,7 @@ public class RecyclerCollectionView extends ViewGroup {
     /************************************************************************************************
      * Here, real layout the children
      ************************************************************************************************/
-    public void layoutChildren() {
+    private void layoutChildren() {
         if (blockLayoutRequests) {
             return;
         }
@@ -1167,7 +1170,7 @@ public class RecyclerCollectionView extends ViewGroup {
     /************************************************************************************************
      * RecyclerCollectionView.LayoutParams
      ************************************************************************************************/
-    public class LayoutParams extends ViewGroup.LayoutParams {
+    public static class LayoutParams extends ViewGroup.LayoutParams {
 
         /*******************************************************************************************
          * Contains sectionType, indexPath(section index && item index)

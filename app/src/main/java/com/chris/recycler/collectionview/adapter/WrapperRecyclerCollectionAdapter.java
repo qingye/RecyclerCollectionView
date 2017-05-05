@@ -2,12 +2,11 @@ package com.chris.recycler.collectionview.adapter;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.chris.recycler.collectionview.R;
 import com.chris.recycler.collectionview.adapter.base.BaseRecyclerCollectionAdapter;
 import com.chris.recycler.collectionview.constants.ViewType;
 import com.chris.recycler.collectionview.structure.IndexPath;
@@ -198,10 +197,10 @@ public final class WrapperRecyclerCollectionAdapter extends BaseRecyclerCollecti
     public View getSectionItemView(IndexPath indexPath, View itemView, ViewGroup parent) {
         ViewHolder holder = null;
         if (itemView == null) {
-            itemView = LayoutInflater.from(context).inflate(R.layout.adapter_recycler_item, null);
+            itemView = createRefreshView(indexPath.getSection());
             itemView.setBackgroundColor(Color.YELLOW);
             holder = new ViewHolder();
-            holder.textView = (TextView) itemView.findViewById(R.id.textView);
+            holder.textView = (TextView) itemView.findViewWithTag("textView");
             itemView.setTag(holder);
         } else {
             holder = (ViewHolder) itemView.getTag();
@@ -209,6 +208,26 @@ public final class WrapperRecyclerCollectionAdapter extends BaseRecyclerCollecti
 
         holder.textView.setText(String.format("Refresh=>(%d-%d)", indexPath.section, indexPath.item));
         return itemView;
+    }
+
+    private RelativeLayout createRefreshView(int section) {
+        RelativeLayout layout = new RelativeLayout(context);
+        TextView tv = new TextView(context);
+        RelativeLayout.LayoutParams p = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        p.addRule(RelativeLayout.CENTER_HORIZONTAL);
+        if (section == 0) {
+            p.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+            p.setMargins(0, 0, 0, 10);
+        } else {
+            p.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+            p.setMargins(0, 10, 0, 0);
+        }
+        tv.setLayoutParams(p);
+        tv.setTextColor(Color.BLACK);
+        tv.setTextSize(16);
+        tv.setTag("textView");
+        layout.addView(tv);
+        return layout;
     }
 
     class ViewHolder {
