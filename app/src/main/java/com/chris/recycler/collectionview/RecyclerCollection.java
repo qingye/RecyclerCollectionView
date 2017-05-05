@@ -38,9 +38,11 @@ public class RecyclerCollection {
         }
 
         sectionTypeCount = new int[]{
-                sectionHeaderTypeCount,
-                sectionItemTypeCount,
-                sectionFooterTypeCount
+                sectionHeaderTypeCount,  // Section Header
+                sectionItemTypeCount,    // Section Item
+                sectionFooterTypeCount,  // Section Footer
+                1,                       // Refresh Header
+                1                        // Refresh Footer
         };
         scrapSections = new ArrayList[sectionTypeCount.length][];
         for (int i = 0; i < sectionTypeCount.length; i++) {
@@ -54,19 +56,6 @@ public class RecyclerCollection {
     }
 
     /***********************************************************************************************
-     * Position reletive to the first visible view's position
-     ***********************************************************************************************/
-    public View getVisibleView(int position) {
-        View view = null;
-        int index = position - firstVisibleViewPosition;
-        if (index >= 0 && index < visibleViews.length) {
-            view = visibleViews[index];
-            visibleViews[index] = null;
-        }
-        return view;
-    }
-
-    /***********************************************************************************************
      * Recycler View to the scrap
      ***********************************************************************************************/
     public void addScrapView(View scrap) {
@@ -74,17 +63,12 @@ public class RecyclerCollection {
         if (lp == null) {
             return;
         }
-
-        int sectionType = lp.getSectionType();
-        if (sectionType >= ViewType.VIEW_HEADER_REFRESH) {
-            return;
-        }
-
         scrap.onStartTemporaryDetach();
 
+        int sectionType = lp.getSectionType();
         sectionType -= ViewType.SECTION_HEADER;
         int viewType = lp.getViewType();
-        if (scrapSections[sectionType] != null) {
+        if (sectionType >= 0 && viewType > 0 && scrapSections[sectionType] != null) {
             scrapSections[sectionType][viewType - 1].add(scrap);
         }
     }
@@ -119,10 +103,7 @@ public class RecyclerCollection {
         for (int i = 0; i < childCount; i++) {
             View child = parentView.getChildAt(i);
             RecyclerCollectionView.LayoutParams lp = (RecyclerCollectionView.LayoutParams) child.getLayoutParams();
-            /***************************************************************************************
-             * Don't put header or footer views into the scrap heap
-             ***************************************************************************************/
-            if (lp != null && (lp.getSectionType() < ViewType.VIEW_HEADER_REFRESH)) {
+            if (lp != null) {
                 /***********************************************************************************
                  * RecyclerCollectionView's header & footer will not scrap
                  * Only section(header, footer, item) can scrap
@@ -130,6 +111,19 @@ public class RecyclerCollection {
                 activeViews[i] = child;
             }
         }
+    }
+
+    /***********************************************************************************************
+     * Position reletive to the first visible view's position
+     ***********************************************************************************************/
+    public View getVisibleView(int position) {
+        View view = null;
+        int index = position - firstVisibleViewPosition;
+        if (index >= 0 && index < visibleViews.length) {
+            view = visibleViews[index];
+            visibleViews[index] = null;
+        }
+        return view;
     }
 
     /***********************************************************************************************

@@ -13,10 +13,8 @@ public class ViewType {
     /******************************************************************************************
      * RecyclerCollectionView's header & footer
      ******************************************************************************************/
-//    public static final int VIEW_HEADER = 0x100;
-//    public static final int VIEW_FOOTER = 0x101;
-    public static final int VIEW_HEADER_REFRESH = 0x102;
-    public static final int VIEW_FOOTER_REFRESH = 0x103;
+//    public static final int VIEW_HEADER_REFRESH = 0x100;
+//    public static final int VIEW_FOOTER_REFRESH = 0x101;
 
     /******************************************************************************************
      * Section's header, item, footer
@@ -24,4 +22,6 @@ public class ViewType {
     public static final int SECTION_HEADER = 0x1;
     public static final int SECTION_ITEM = 0x2;
     public static final int SECTION_FOOTER = 0x3;
+    public static final int VIEW_HEADER_REFRESH = 0x4;
+    public static final int VIEW_FOOTER_REFRESH = 0x5;
 }
