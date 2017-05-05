@@ -14,6 +14,6 @@ public class Log {
     }
 
     public final static void e(String func, SectionPath sectionPath) {
-        e(String.format("[%s] st = %d, si = (%d, %d)", func, sectionPath.sectionType, sectionPath.indexPath.section, sectionPath.indexPath.item));
+        e(String.format("[%s] sectionType = %d, indexPath = (sec=>%d, item=>%d)", func, sectionPath.sectionType, sectionPath.indexPath.section, sectionPath.indexPath.item));
     }
 }
