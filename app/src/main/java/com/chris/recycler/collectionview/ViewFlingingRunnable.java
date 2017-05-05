@@ -54,7 +54,6 @@ public class ViewFlingingRunnable implements Runnable {
     }
 
     public void stop() {
-        Log.e("stop");
         scrollMode = ScrollMode.NONE;
         parent.removeCallbacks(this);
         overScroller.abortAnimation();
