@@ -102,15 +102,24 @@ public abstract class BaseRecyclerCollectionAdapter {
             case ViewType.SECTION_FOOTER:
                 count = getHeaderOrFooterInSection(sectionType, section);
                 break;
+
+            case ViewType.VIEW_HEADER_REFRESH:
+            case ViewType.VIEW_FOOTER_REFRESH:
+                count = getRefreshInSection(sectionType, section);
+                break;
         }
         return count;
     }
 
-    public int getHeaderOrFooterInSection(int sectionType, int section){
+    public int getHeaderOrFooterInSection(int sectionType, int section) {
         return 0;
     }
 
-    public int getItemsInSection(int section){
+    public int getItemsInSection(int section) {
+        return 0;
+    }
+
+    public int getRefreshInSection(int sectionType, int section) {
         return 0;
     }
 
@@ -143,7 +152,7 @@ public abstract class BaseRecyclerCollectionAdapter {
     /************************************************************************************************
      * Section View
      ************************************************************************************************/
-    public final View getSectionView(SectionPath sectionPath, View convertView, ViewGroup parent) {
+    public View getSectionView(SectionPath sectionPath, View convertView, ViewGroup parent) {
         View view = null;
         switch (sectionPath.sectionType) {
             case ViewType.SECTION_HEADER:
