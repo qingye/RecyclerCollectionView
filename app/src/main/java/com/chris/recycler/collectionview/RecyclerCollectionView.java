@@ -1029,13 +1029,13 @@ public class RecyclerCollectionView extends ViewGroup {
             if (direction <= RecyclerCollectionDirection.FROM_BOTTOM_TO_TOP) {
                 View view = null;
                 int dy = (int) (deltaY * coefficient);
-                if (canScrollDown(deltaY) || canScrollRefreshHeader()) {
+                if (adapter.getRefreshHeader() != null && (canScrollDown(deltaY) || canScrollRefreshHeader())) {
                     /*******************************************************************************
                      * Pull Down For Refresh
                      *******************************************************************************/
                     mPosY = getPaddingTop();
                     view = getChildAt(0);
-                } else if (canScrollUp(deltaY) || canScrollRefreshFooter()) {
+                } else if (adapter.getRefreshFooter() != null && (canScrollUp(deltaY) || canScrollRefreshFooter())) {
                     /*******************************************************************************
                      * Pull Up For Load
                      *******************************************************************************/
@@ -1060,12 +1060,12 @@ public class RecyclerCollectionView extends ViewGroup {
             if (direction <= RecyclerCollectionDirection.FROM_BOTTOM_TO_TOP) {
                 int offsetY = 0;
 
-                if (firstPosition == 0) {
+                if (adapter.getRefreshHeader() != null && firstPosition == 0) {
                     view = getChildAt(0);
                     LayoutParams lp = (LayoutParams) view.getLayoutParams();
                     lp.height = 0;
                     view.setLayoutParams(lp);
-                } else if (firstPosition + childCount == adapter.getCount()) {
+                } else if (adapter.getRefreshFooter() != null && firstPosition + childCount == adapter.getCount()) {
                     view = getChildAt(getChildCount() - 1);
                     LayoutParams lp = (LayoutParams) view.getLayoutParams();
 
