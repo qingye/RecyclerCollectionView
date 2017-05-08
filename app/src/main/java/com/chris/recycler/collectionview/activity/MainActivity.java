@@ -3,8 +3,12 @@ package com.chris.recycler.collectionview.activity;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
+import com.chris.recycler.collectionview.Log;
 import com.chris.recycler.collectionview.R;
 import com.chris.recycler.collectionview.RecyclerCollectionView;
+import com.chris.recycler.collectionview.adapter.refresh.RefreshFooterView;
+import com.chris.recycler.collectionview.adapter.refresh.RefreshHeaderView;
+import com.chris.recycler.collectionview.adapter.refresh.RefreshView;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -21,6 +25,30 @@ public class MainActivity extends AppCompatActivity {
     private void initView() {
         adapter = new RecyclerCollectionAdapter(this);
         recyclerCollectionView = (RecyclerCollectionView) findViewById(R.id.recyclerCollectionView);
-        recyclerCollectionView.setAdapter(adapter);
+        recyclerCollectionView.setAdapter(adapter)
+                .setRefreshHeader(new RefreshHeaderView(this).setOnRefreshListener(new RefreshView.OnRefreshListener() {
+                    @Override
+                    public void onRefresh() {
+                        Log.e("header on refresh");
+                        recyclerCollectionView.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                recyclerCollectionView.onComplete();
+                            }
+                        }, 3000);
+                    }
+                }))
+                .setRefreshFooter(new RefreshFooterView(this).setOnRefreshListener(new RefreshView.OnRefreshListener() {
+                    @Override
+                    public void onRefresh() {
+                        Log.e("footer on refresh");
+                        recyclerCollectionView.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                recyclerCollectionView.onComplete();
+                            }
+                        }, 3000);
+                    }
+                }));
     }
 }
