@@ -1,13 +1,11 @@
 package com.chris.recycler.collectionview.adapter;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
 
 import com.chris.recycler.collectionview.adapter.base.BaseRecyclerCollectionAdapter;
+import com.chris.recycler.collectionview.adapter.refresh.RefreshView;
 import com.chris.recycler.collectionview.constants.ViewType;
 import com.chris.recycler.collectionview.structure.IndexPath;
 import com.chris.recycler.collectionview.structure.SectionPath;
@@ -17,32 +15,27 @@ import com.chris.recycler.collectionview.structure.SectionPath;
  */
 public final class WrapperRecyclerCollectionAdapter extends BaseRecyclerCollectionAdapter {
 
-    private Context context = null;
     private BaseRecyclerCollectionAdapter innerAdapter = null;
-    private View refreshHeader = null;
-    private View refreshFooter = null;
+    private RefreshView refreshHeader = null;
+    private RefreshView refreshFooter = null;
 
     public WrapperRecyclerCollectionAdapter(Context context, BaseRecyclerCollectionAdapter adapter) {
-        this.context = context;
         this.innerAdapter = adapter;
-
-        refreshHeader = new View(context);
-        refreshFooter = new View(context);
     }
 
-    public void setRefreshHeader(View refreshHeader) {
+    public void setRefreshHeader(RefreshView refreshHeader) {
         this.refreshHeader = refreshHeader;
     }
 
-    public View getRefreshHeader() {
+    public RefreshView getRefreshHeader() {
         return refreshHeader;
     }
 
-    public void setRefreshFooter(View refreshFooter) {
+    public void setRefreshFooter(RefreshView refreshFooter) {
         this.refreshFooter = refreshFooter;
     }
 
-    public View getRefreshFooter() {
+    public RefreshView getRefreshFooter() {
         return refreshFooter;
     }
 
@@ -195,42 +188,7 @@ public final class WrapperRecyclerCollectionAdapter extends BaseRecyclerCollecti
 
     @Override
     public View getSectionItemView(IndexPath indexPath, View itemView, ViewGroup parent) {
-        ViewHolder holder = null;
-        if (itemView == null) {
-            itemView = createRefreshView(indexPath.getSection());
-            itemView.setBackgroundColor(Color.YELLOW);
-            holder = new ViewHolder();
-            holder.textView = (TextView) itemView.findViewWithTag("textView");
-            itemView.setTag(holder);
-        } else {
-            holder = (ViewHolder) itemView.getTag();
-        }
-
-        holder.textView.setText(String.format("Refresh=>(%d-%d)", indexPath.section, indexPath.item));
-        return itemView;
-    }
-
-    private RelativeLayout createRefreshView(int section) {
-        RelativeLayout layout = new RelativeLayout(context);
-        TextView tv = new TextView(context);
-        RelativeLayout.LayoutParams p = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        p.addRule(RelativeLayout.CENTER_HORIZONTAL);
-        if (section == 0) {
-            p.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
-            p.setMargins(0, 0, 0, 10);
-        } else {
-            p.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-            p.setMargins(0, 10, 0, 0);
-        }
-        tv.setLayoutParams(p);
-        tv.setTextColor(Color.BLACK);
-        tv.setTextSize(16);
-        tv.setTag("textView");
-        layout.addView(tv);
-        return layout;
-    }
-
-    class ViewHolder {
-        public TextView textView = null;
+        RefreshView refreshView = indexPath.getSection() == 0 ? refreshHeader : refreshFooter;
+        return refreshView.getRefreshView(RefreshView.REFRESH_STATUS_NONE, itemView);
     }
 }
