@@ -17,19 +17,33 @@ public abstract class RefreshView {
     public static final int REFRESH_STATUS_REFRESHING = 3;
 
     private OnRefreshListener onRefreshListener = null;
+    private int status = REFRESH_STATUS_NONE;
 
-    public RefreshView setOnRefreshListener(OnRefreshListener l) {
+    public final RefreshView setOnRefreshListener(OnRefreshListener l) {
         onRefreshListener = l;
         return this;
     }
 
-    public void onRefresh() {
-        if (onRefreshListener != null) {
+    public final void onRefresh() {
+        if (onRefreshListener != null && status < REFRESH_STATUS_REFRESHING) {
             onRefreshListener.onRefresh();
         }
     }
 
+    public void resetStatus() {
+        this.status = REFRESH_STATUS_NONE;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public final View getRefreshView(int status, View itemView) {
+        this.status = status;
+        return getView(status, itemView);
+    }
+
     public abstract int getMaxDistance();
 
-    public abstract View getRefreshView(int status, View itemView);
+    protected abstract View getView(int status, View itemView);
 }

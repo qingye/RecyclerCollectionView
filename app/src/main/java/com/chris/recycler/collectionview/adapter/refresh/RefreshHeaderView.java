@@ -24,7 +24,7 @@ public class RefreshHeaderView extends RefreshView {
     }
 
     @Override
-    public View getRefreshView(int status, View itemView) {
+    public View getView(int status, View itemView) {
         ViewHolder holder = null;
         if (itemView == null) {
             itemView = createRefreshView();
