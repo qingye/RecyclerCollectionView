@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
                             public void run() {
                                 recyclerCollectionView.onComplete();
                             }
-                        }, 3000);
+                        }, 30000);
                     }
                 }))
                 .setRefreshFooter(new RefreshFooterView(this).setOnRefreshListener(new RefreshView.OnRefreshListener() {
@@ -47,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
                             public void run() {
                                 recyclerCollectionView.onComplete();
                             }
-                        }, 3000);
+                        }, 30000);
                     }
                 }));
     }
