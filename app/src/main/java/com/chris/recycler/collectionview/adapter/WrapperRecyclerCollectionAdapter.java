@@ -189,6 +189,6 @@ public final class WrapperRecyclerCollectionAdapter extends BaseRecyclerCollecti
     @Override
     public View getSectionItemView(IndexPath indexPath, View itemView, ViewGroup parent) {
         RefreshView refreshView = indexPath.getSection() == 0 ? refreshHeader : refreshFooter;
-        return refreshView.getRefreshView(RefreshView.REFRESH_STATUS_NONE, itemView);
+        return refreshView.getRefreshView(refreshView.getStatus(), itemView);
     }
 }
