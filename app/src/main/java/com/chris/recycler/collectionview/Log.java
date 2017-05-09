@@ -1,5 +1,6 @@
 package com.chris.recycler.collectionview;
 
+import com.chris.recycler.collectionview.structure.IndexPath;
 import com.chris.recycler.collectionview.structure.SectionPath;
 
 /**
@@ -15,5 +16,9 @@ public class Log {
 
     public final static void e(String func, SectionPath sectionPath) {
         e(String.format("[%s] sectionType = %d, indexPath = (sec=>%d, item=>%d)", func, sectionPath.sectionType, sectionPath.indexPath.section, sectionPath.indexPath.item));
+    }
+
+    public final static void e(String func, IndexPath indexPath) {
+        e(String.format("[%s] indexPath = (sec=>%d, item=>%d)", func, indexPath.section, indexPath.item));
     }
 }
