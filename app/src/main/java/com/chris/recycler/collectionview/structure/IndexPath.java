@@ -39,4 +39,29 @@ public class IndexPath {
     public void setItem(int item) {
         this.item = item;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null) {
+            return false;
+        }
+
+        if (this == o) {
+            return true;
+        }
+
+        if (o instanceof IndexPath) {
+            IndexPath ip = (IndexPath) o;
+            if (this.section == ip.section && this.item == ip.item) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return (section + 1) * (item + 1);
+    }
 }
