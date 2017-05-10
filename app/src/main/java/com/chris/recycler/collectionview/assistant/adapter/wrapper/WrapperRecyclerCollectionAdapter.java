@@ -83,7 +83,7 @@ public final class WrapperRecyclerCollectionAdapter extends BaseRecyclerCollecti
 
     @Override
     public int getPosition(SectionPath sectionPath) {
-        int position = 0;
+        int position = -1;
         if (refreshHeader == null && refreshFooter == null && innerAdapter != null) {
             position = innerAdapter.getPosition(sectionPath);
         } else {
@@ -96,6 +96,24 @@ public final class WrapperRecyclerCollectionAdapter extends BaseRecyclerCollecti
             }
         }
         return position;
+    }
+
+    @Override
+    public SectionPath getSectionPath(int position) {
+        SectionPath sectionPath = null;
+        if (refreshHeader == null && refreshFooter == null && innerAdapter != null) {
+            sectionPath = innerAdapter.getSectionPath(position);
+        } else {
+            if (refreshHeader != null && position == 0) {
+                sectionPath = new SectionPath(ViewType.VIEW_HEADER_REFRESH, new IndexPath(0, 0));
+            } else if (refreshFooter != null && position + 1 == getCount()) {
+                sectionPath = new SectionPath(ViewType.VIEW_FOOTER_REFRESH, new IndexPath(getSections() - 1, 0));
+            } else if (innerAdapter != null) {
+                sectionPath = innerAdapter.getSectionPath(position - 1);
+                sectionPath.indexPath.section ++; // has RefreshHeader, so section ++
+            }
+        }
+        return sectionPath;
     }
 
     @Override
@@ -190,5 +208,18 @@ public final class WrapperRecyclerCollectionAdapter extends BaseRecyclerCollecti
     public View getSectionItemView(IndexPath indexPath, View itemView, ViewGroup parent) {
         RefreshView refreshView = indexPath.getSection() == 0 ? refreshHeader : refreshFooter;
         return refreshView.getRefreshView(refreshView.getStatus(), itemView);
+    }
+
+    /************************************************************************************************
+     * Only SectionHeader has Pinned Option
+     ************************************************************************************************/
+    @Override
+    public boolean isSectionHeaderPinned(IndexPath indexPath) {
+        boolean ret = false;
+        if (refreshHeader != null && indexPath.getSection() > 0 ||
+                refreshFooter != null && indexPath.getSection() < getSections() - 1) {
+            ret = innerAdapter.isSectionHeaderPinned(getInnerIndexPath(indexPath));
+        }
+        return ret;
     }
 }

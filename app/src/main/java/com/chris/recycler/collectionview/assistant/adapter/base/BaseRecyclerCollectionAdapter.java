@@ -42,18 +42,37 @@ public abstract class BaseRecyclerCollectionAdapter {
     }
 
     public int getPosition(SectionPath sectionPath) {
-        int position = 0;
-        for (int i = 0; i < sectionPath.getIndexPath().getSection(); i++) {
-            for (int sectionType = ViewType.SECTION_HEADER; sectionType <= ViewType.SECTION_FOOTER; sectionType++) {
-                position += getSectionItemInSection(sectionType, i);
+        int position = -1;
+        if (sectionPath != null && sectionPath.indexPath != null && sectionPath.indexPath.section < getSections()) {
+            for (int i = 0; i < sectionPath.getIndexPath().getSection(); i++) {
+                for (int sectionType = ViewType.SECTION_HEADER; sectionType <= ViewType.SECTION_FOOTER; sectionType++) {
+                    position += getSectionItemInSection(sectionType, i);
+                }
+            }
+
+            position += sectionPath.getIndexPath().getItem();
+            for (int sectionType = sectionPath.getSectionType() - 1; sectionType >= ViewType.SECTION_HEADER; sectionType--) {
+                position += getSectionItemInSection(sectionType, sectionPath.getIndexPath().getSection());
             }
         }
-
-        position += sectionPath.getIndexPath().getItem();
-        for (int sectionType = sectionPath.getSectionType() - 1; sectionType >= ViewType.SECTION_HEADER; sectionType--) {
-            position += getSectionItemInSection(sectionType, sectionPath.getIndexPath().getSection());
-        }
         return position;
+    }
+
+    public SectionPath getSectionPath(int position) {
+        for (int i = 0; i < getSections(); i++) {
+            for (int sectionType = ViewType.SECTION_HEADER; sectionType <= ViewType.SECTION_FOOTER; sectionType++) {
+                int count = getSectionItemInSection(sectionType, i);
+                if (position > count) {
+                    position -= count;
+                } else {
+                    SectionPath sectionPath = new SectionPath();
+                    sectionPath.setSectionType(sectionType);
+                    sectionPath.setIndexPath(new IndexPath(i, position));
+                    return sectionPath;
+                }
+            }
+        }
+        return null;
     }
 
     /************************************************************************************************
@@ -179,4 +198,11 @@ public abstract class BaseRecyclerCollectionAdapter {
     }
 
     public abstract View getSectionItemView(IndexPath indexPath, View itemView, ViewGroup parent);
+
+    /************************************************************************************************
+     * Only SectionHeader has Pinned Option
+     ************************************************************************************************/
+    public boolean isSectionHeaderPinned(IndexPath indexPath) {
+        return false;
+    }
 }
