@@ -9,7 +9,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.chris.recycler.collectionview.R;
-import com.chris.recycler.collectionview.adapter.base.BaseRecyclerCollectionAdapter;
+import com.chris.recycler.collectionview.assistant.adapter.base.BaseRecyclerCollectionAdapter;
 import com.chris.recycler.collectionview.constants.ViewType;
 import com.chris.recycler.collectionview.structure.IndexPath;
 

@@ -11,10 +11,10 @@ import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 
-import com.chris.recycler.collectionview.adapter.WrapperRecyclerCollectionAdapter;
-import com.chris.recycler.collectionview.adapter.base.BaseRecyclerCollectionAdapter;
-import com.chris.recycler.collectionview.adapter.observer.AdapterViewDataSetObserver;
-import com.chris.recycler.collectionview.adapter.refresh.RefreshView;
+import com.chris.recycler.collectionview.assistant.WrapperRecyclerCollectionAdapter;
+import com.chris.recycler.collectionview.assistant.adapter.base.BaseRecyclerCollectionAdapter;
+import com.chris.recycler.collectionview.assistant.observer.AdapterViewDataSetObserver;
+import com.chris.recycler.collectionview.assistant.refresh.RefreshView;
 import com.chris.recycler.collectionview.constants.RecyclerCollectionDirection;
 import com.chris.recycler.collectionview.constants.ScrollMode;
 import com.chris.recycler.collectionview.constants.ViewType;

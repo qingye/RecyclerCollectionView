@@ -1,4 +1,4 @@
-package com.chris.recycler.collectionview.adapter.refresh;
+package com.chris.recycler.collectionview.assistant.refresh;
 
 import android.view.View;
 

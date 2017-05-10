@@ -6,9 +6,9 @@ import android.os.Bundle;
 import com.chris.recycler.collectionview.Log;
 import com.chris.recycler.collectionview.R;
 import com.chris.recycler.collectionview.RecyclerCollectionView;
-import com.chris.recycler.collectionview.adapter.refresh.RefreshFooterView;
-import com.chris.recycler.collectionview.adapter.refresh.RefreshHeaderView;
-import com.chris.recycler.collectionview.adapter.refresh.RefreshView;
+import com.chris.recycler.collectionview.assistant.refresh.RefreshFooterView;
+import com.chris.recycler.collectionview.assistant.refresh.RefreshHeaderView;
+import com.chris.recycler.collectionview.assistant.refresh.RefreshView;
 
 public class MainActivity extends AppCompatActivity {
 

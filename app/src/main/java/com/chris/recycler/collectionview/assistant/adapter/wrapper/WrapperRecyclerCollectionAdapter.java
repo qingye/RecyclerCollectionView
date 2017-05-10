@@ -1,11 +1,11 @@
-package com.chris.recycler.collectionview.adapter;
+package com.chris.recycler.collectionview.assistant.adapter.wrapper;
 
 import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.chris.recycler.collectionview.adapter.base.BaseRecyclerCollectionAdapter;
-import com.chris.recycler.collectionview.adapter.refresh.RefreshView;
+import com.chris.recycler.collectionview.assistant.adapter.base.BaseRecyclerCollectionAdapter;
+import com.chris.recycler.collectionview.assistant.refresh.RefreshView;
 import com.chris.recycler.collectionview.constants.ViewType;
 import com.chris.recycler.collectionview.structure.IndexPath;
 import com.chris.recycler.collectionview.structure.SectionPath;
