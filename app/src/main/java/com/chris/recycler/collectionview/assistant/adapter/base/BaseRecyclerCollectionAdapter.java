@@ -44,6 +44,7 @@ public abstract class BaseRecyclerCollectionAdapter {
     public int getPosition(SectionPath sectionPath) {
         int position = -1;
         if (sectionPath != null && sectionPath.indexPath != null && sectionPath.indexPath.section < getSections()) {
+            position = 0;
             for (int i = 0; i < sectionPath.getIndexPath().getSection(); i++) {
                 for (int sectionType = ViewType.SECTION_HEADER; sectionType <= ViewType.SECTION_FOOTER; sectionType++) {
                     position += getSectionItemInSection(sectionType, i);
