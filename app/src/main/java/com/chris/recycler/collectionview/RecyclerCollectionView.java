@@ -11,9 +11,9 @@ import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 
-import com.chris.recycler.collectionview.assistant.WrapperRecyclerCollectionAdapter;
 import com.chris.recycler.collectionview.assistant.adapter.base.BaseRecyclerCollectionAdapter;
-import com.chris.recycler.collectionview.assistant.observer.AdapterViewDataSetObserver;
+import com.chris.recycler.collectionview.assistant.adapter.observer.AdapterViewDataSetObserver;
+import com.chris.recycler.collectionview.assistant.adapter.wrapper.WrapperRecyclerCollectionAdapter;
 import com.chris.recycler.collectionview.assistant.refresh.RefreshView;
 import com.chris.recycler.collectionview.constants.RecyclerCollectionDirection;
 import com.chris.recycler.collectionview.constants.ScrollMode;
