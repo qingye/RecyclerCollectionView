@@ -59,6 +59,10 @@ public class RecyclerCollection {
      * Recycler View to the scrap
      ***********************************************************************************************/
     public void addScrapView(View scrap) {
+        if (scrap == null) {
+            return;
+        }
+
         RecyclerCollectionView.LayoutParams lp = (RecyclerCollectionView.LayoutParams) scrap.getLayoutParams();
         if (lp == null) {
             return;
