@@ -15,6 +15,7 @@ import com.chris.recycler.collectionview.assistant.adapter.base.BaseRecyclerColl
 import com.chris.recycler.collectionview.assistant.adapter.observer.AdapterViewDataSetObserver;
 import com.chris.recycler.collectionview.assistant.adapter.wrapper.WrapperRecyclerCollectionAdapter;
 import com.chris.recycler.collectionview.assistant.refresh.RefreshView;
+import com.chris.recycler.collectionview.assistant.scroll.OnScrollListener;
 import com.chris.recycler.collectionview.constants.RecyclerCollectionDirection;
 import com.chris.recycler.collectionview.constants.ScrollMode;
 import com.chris.recycler.collectionview.constants.ViewType;
@@ -42,6 +43,11 @@ public class RecyclerCollectionView extends ViewGroup {
      * Runnable for scroll/fling
      ***********************************************************************************************/
     private ViewFlingingRunnable viewFlingingRunnable = null;
+
+    /***********************************************************************************************
+     * Scroll report
+     ***********************************************************************************************/
+    private OnScrollListener onScrollListener = null;
 
     /***********************************************************************************************
      * Visible views' first real-position
@@ -162,6 +168,16 @@ public class RecyclerCollectionView extends ViewGroup {
     public void onComplete() {
         Log.e("onComplete");
         releaseRefresh(0);
+    }
+
+    /************************************************************************************************
+     * Scroll listener
+     ************************************************************************************************/
+    public void setOnScrollListener(OnScrollListener l) {
+        this.onScrollListener = l;
+        if (viewFlingingRunnable != null) {
+            viewFlingingRunnable.setOnScrollListener(onScrollListener);
+        }
     }
 
     /************************************************************************************************
@@ -945,6 +961,10 @@ public class RecyclerCollectionView extends ViewGroup {
             return deltaY != 0;
         }
         doScroll(deltaX, deltaY);
+
+        if (onScrollListener != null) {
+            onScrollListener.onScroll(this, firstPosition, getChildCount(), adapter.getCount());
+        }
         return false;
     }
 
