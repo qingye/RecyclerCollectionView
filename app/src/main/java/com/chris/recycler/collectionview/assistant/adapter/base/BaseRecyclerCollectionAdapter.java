@@ -63,7 +63,7 @@ public abstract class BaseRecyclerCollectionAdapter {
         for (int i = 0; i < getSections(); i++) {
             for (int sectionType = ViewType.SECTION_HEADER; sectionType <= ViewType.SECTION_FOOTER; sectionType++) {
                 int count = getSectionItemInSection(sectionType, i);
-                if (position > count) {
+                if (position >= count) {
                     position -= count;
                 } else {
                     SectionPath sectionPath = new SectionPath();
