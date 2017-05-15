@@ -2,6 +2,8 @@ package com.chris.recycler.collectionview;
 
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.Rect;
 import android.os.Build;
 import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
@@ -90,6 +92,15 @@ public class RecyclerCollectionView extends ViewGroup {
     private WrapperRecyclerCollectionAdapter adapter = null;
 
     /***********************************************************************************************
+     * Pinned
+     ***********************************************************************************************/
+    private View pinnedView = null;
+    private View touchTarget = null;
+    private MotionEvent downEvent = null;
+    private Point touchPoint = null;
+    private int translateY = 0;
+
+    /***********************************************************************************************
      * Begin
      ***********************************************************************************************/
     public RecyclerCollectionView(Context context) {
@@ -113,6 +124,7 @@ public class RecyclerCollectionView extends ViewGroup {
 
     private void init() {
         viewFlingingRunnable = new ViewFlingingRunnable(this);
+        viewFlingingRunnable.setOnScrollListener(pinnedScrollListener);
 
         ViewConfiguration configuration = ViewConfiguration.get(getContext());
         touchSlop = configuration.getScaledTouchSlop();
@@ -175,9 +187,6 @@ public class RecyclerCollectionView extends ViewGroup {
      ************************************************************************************************/
     public void setOnScrollListener(OnScrollListener l) {
         this.onScrollListener = l;
-        if (viewFlingingRunnable != null) {
-            viewFlingingRunnable.setOnScrollListener(onScrollListener);
-        }
     }
 
     /************************************************************************************************
@@ -356,7 +365,7 @@ public class RecyclerCollectionView extends ViewGroup {
      * Correct Top or Bottom Gap when scroll to the first or last child:
      * 1. First child's top may be too low that has a gap;
      * - If has, we need to adjust it and do fillGap(down = false) again
-     * <p>
+     * <p/>
      * 2. Last child's bottom may be too high that has a gap;
      * - If has, we need to adjust it and do fillGap(down = true) again
      ************************************************************************************************/
@@ -757,6 +766,49 @@ public class RecyclerCollectionView extends ViewGroup {
      * TouchEvent process
      ************************************************************************************************/
     @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        if (ev.getAction() == MotionEvent.ACTION_DOWN && pinnedView != null &&
+                touchTarget == null && isPinnedViewTouched(ev.getX(), ev.getY())) {
+            touchTarget = pinnedView;
+            touchPoint = new Point((int) ev.getX(), (int) ev.getY());
+            downEvent = MotionEvent.obtain(ev);
+        }
+
+        if (touchTarget != null) {
+            if (isPinnedViewTouched(ev.getX(), ev.getY())) {
+                pinnedView.dispatchTouchEvent(ev);
+            }
+
+            switch (ev.getAction()) {
+                case MotionEvent.ACTION_UP:
+                    super.dispatchTouchEvent(ev);
+                    performPinnedViewClick();
+                    clearTouchTarget();
+                    break;
+
+                case MotionEvent.ACTION_CANCEL:
+                    clearTouchTarget();
+                    break;
+
+                case MotionEvent.ACTION_MOVE:
+                    if (Math.abs(ev.getY() - touchPoint.y) > touchSlop) {
+                        MotionEvent event = MotionEvent.obtain(ev);
+                        event.setAction(MotionEvent.ACTION_CANCEL);
+                        touchTarget.dispatchTouchEvent(event);
+                        event.recycle();
+
+                        super.dispatchTouchEvent(downEvent);
+                        super.dispatchTouchEvent(ev);
+                        clearTouchTarget();
+                    }
+                    break;
+            }
+            return true;
+        }
+        return super.dispatchTouchEvent(ev);
+    }
+
+    @Override
     public boolean onInterceptTouchEvent(MotionEvent event) {
         if (velocityTracker != null) {
             velocityTracker.addMovement(event);
@@ -962,8 +1014,8 @@ public class RecyclerCollectionView extends ViewGroup {
         }
         doScroll(deltaX, deltaY);
 
-        if (onScrollListener != null) {
-            onScrollListener.onScroll(this, firstPosition, getChildCount(), adapter.getCount());
+        if (pinnedScrollListener != null) {
+            pinnedScrollListener.onScroll(this, firstPosition, getChildCount(), adapter.getCount());
         }
         return false;
     }
@@ -1246,13 +1298,13 @@ public class RecyclerCollectionView extends ViewGroup {
 
     /************************************************************************************************
      * Scroller code block
-     * <p>
+     * <p/>
      * 1. overScrollBy be used by OverScroller;
      * 2. onOverScrolled should be override when use View.overScrollBy;
      * 3. When use View.overScrollBy, then should give:
      * - 3.1 override computeVerticalScrollRange
      * - 3.2 override computeVerticalScrollExtent
-     * <p>
+     * <p/>
      * Notice: only fling will trigger these operation, start won't
      ************************************************************************************************/
     public boolean overScrollBy(int dx, int dy, int sx, int sy, int srx, int sry, int osx, int osy, boolean tv) {
@@ -1302,6 +1354,159 @@ public class RecyclerCollectionView extends ViewGroup {
             }
         }
         return extent;
+    }
+
+    /************************************************************************************************
+     * Pinned Relative
+     * 1. Scroll Listener for monitor;
+     * 2. DispatchDraw: draw pinned view in canvas;
+     * 3. Check PinnedView if touched;
+     *    - isPinnedViewTouched
+     *    - performPinnedViewClick
+     *    - clearTouchTarget
+     ************************************************************************************************/
+    @Override
+    protected void dispatchDraw(Canvas canvas) {
+        super.dispatchDraw(canvas);
+
+        int paddingLeft = getPaddingLeft();
+        int paddingTop = getPaddingTop();
+        if (pinnedView != null) {
+            int saveCount = canvas.save();
+            canvas.translate(paddingLeft, paddingTop + translateY);
+            canvas.clipRect(0, paddingTop, paddingLeft + pinnedView.getWidth(), paddingTop + pinnedView.getHeight());
+            drawChild(canvas, pinnedView, getDrawingTime());
+            canvas.restoreToCount(saveCount);
+        }
+    }
+
+    private final OnScrollListener pinnedScrollListener = new OnScrollListener() {
+        @Override
+        public void onScrollStateChanged(RecyclerCollectionView view, int scrollState) {
+            if (onScrollListener != null) {
+                onScrollListener.onScrollStateChanged(view, scrollState);
+            }
+        }
+
+        @Override
+        public void onScroll(RecyclerCollectionView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+            if (onScrollListener != null) {
+                onScrollListener.onScroll(view, firstVisibleItem, visibleItemCount, totalItemCount);
+            }
+
+            if (adapter.getAdapter() == null || adapter.getAdapter().getCount() == 0) {
+                return;
+            }
+
+            boolean pinned = false;
+            SectionPath sectionPath = adapter.getSectionPath(firstVisibleItem);
+            if (sectionPath.sectionType == ViewType.SECTION_HEADER && sectionPath.indexPath.item == 0) {
+                pinned = adapter.isSectionHeaderPinned(sectionPath.getIndexPath());
+            }
+
+            if (pinned) {
+                View sectionView = getChildAt(0);
+                if (sectionView.getTop() == getPaddingTop()) {
+                    recyclerPinnedView();
+                } else {
+                    ensurePinnedView(sectionPath, firstVisibleItem, visibleItemCount);
+                }
+            } else {
+                sectionPath = findCurrentSectionPinnedView(sectionPath);
+                if (sectionPath != null) {
+                    ensurePinnedView(sectionPath, firstVisibleItem, visibleItemCount);
+                } else {
+                    recyclerPinnedView();
+                }
+            }
+        }
+    };
+
+    private void ensurePinnedView(SectionPath sectionPath, int firstVisibleItem, int visibleItemCount) {
+        if (pinnedView != null) {
+            SectionPath sp = ((LayoutParams) pinnedView.getLayoutParams()).getSectionPath();
+            if (!sp.equals(sectionPath)) {
+                recyclerPinnedView();
+            }
+        }
+
+        if (pinnedView == null && sectionPath.sectionType == ViewType.SECTION_HEADER && sectionPath.indexPath.item == 0) {
+            makePinnedView(sectionPath);
+        }
+        checkNextPinnedView(sectionPath, firstVisibleItem, visibleItemCount);
+    }
+
+    private void makePinnedView(SectionPath sectionPath) {
+        pinnedView = makeView(sectionPath);
+        measureChild(pinnedView);
+        pinnedView.layout(0, 0, pinnedView.getMeasuredWidth(), pinnedView.getMeasuredHeight());
+        translateY = 0;
+    }
+
+    private void checkNextPinnedView(SectionPath sectionPath, int firstVisibleItem, int visibleItemCount) {
+        SectionPath sp = new SectionPath(sectionPath);
+        sp.indexPath.section++;
+        if (sp.indexPath.section < adapter.getSections()) {
+            int pos = adapter.getPosition(sp);
+            if (pos > -1 && firstVisibleItem + visibleItemCount > pos) {
+                if (adapter.isSectionHeaderPinned(sp.getIndexPath())) {
+                    View nextPinnedView = getChildAt(pos - firstVisibleItem);
+                    final int bottom = pinnedView.getBottom() + getPaddingTop();
+                    int distanceY = nextPinnedView.getTop() - bottom;
+                    if (distanceY < 0) {
+                        translateY = distanceY;
+                    } else {
+                        translateY = 0;
+                    }
+                }
+            }
+        }
+    }
+
+    private SectionPath findCurrentSectionPinnedView(SectionPath sectionPath) {
+        SectionPath sp = new SectionPath(sectionPath);
+        sp.setSectionType(ViewType.SECTION_HEADER);
+        sp.indexPath.setItem(0);
+        if (adapter.getSectionItemInSection(sp.getSectionType(), sp.getIndexPath().getSection()) > 0 &&
+                adapter.isSectionHeaderPinned(sp.getIndexPath())) {
+            return sp;
+        }
+        return null;
+    }
+
+    private void recyclerPinnedView() {
+        recyclerCollection.addScrapView(pinnedView);
+        pinnedView = null;
+    }
+
+    private boolean isPinnedViewTouched(float x, float y) {
+        if (pinnedView != null) {
+            Rect rect = new Rect();
+            pinnedView.getHitRect(rect);
+
+            rect.top += translateY;
+            rect.bottom += translateY + getPaddingTop();
+            rect.left += getPaddingLeft();
+            rect.right += -getPaddingRight();
+            return rect.contains((int) x, (int) y);
+        }
+        return false;
+    }
+
+    private void performPinnedViewClick() {
+        if (pinnedView == null) {
+            return;
+        }
+        pinnedView.performClick();
+    }
+
+    private void clearTouchTarget() {
+        touchTarget = null;
+        touchPoint = null;
+        if (downEvent != null) {
+            downEvent.recycle();
+            downEvent = null;
+        }
     }
 
     /************************************************************************************************
