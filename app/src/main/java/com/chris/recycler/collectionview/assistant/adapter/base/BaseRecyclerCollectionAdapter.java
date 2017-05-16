@@ -34,26 +34,26 @@ public abstract class BaseRecyclerCollectionAdapter {
     public int getCount() {
         int total = 0;
         for (int i = 0; i < getSections(); i++) {
-            for (int sectionType = ViewType.SECTION_HEADER; sectionType <= ViewType.SECTION_FOOTER; sectionType++) {
-                total += getSectionItemInSection(sectionType, i);
+            for (int type = ViewType.SECTION_HEADER; type <= ViewType.SECTION_FOOTER; type++) {
+                total += getSectionItemInSection(type, i);
             }
         }
         return total;
     }
 
-    public int getPosition(SectionPath sectionPath) {
+    public int getPosition(SectionPath sp) {
         int position = -1;
-        if (sectionPath != null && sectionPath.indexPath != null && sectionPath.indexPath.section < getSections()) {
+        if (sp != null && sp.indexPath != null && sp.indexPath.section < getSections()) {
             position = 0;
-            for (int i = 0; i < sectionPath.getIndexPath().getSection(); i++) {
-                for (int sectionType = ViewType.SECTION_HEADER; sectionType <= ViewType.SECTION_FOOTER; sectionType++) {
-                    position += getSectionItemInSection(sectionType, i);
+            for (int i = 0; i < sp.indexPath.section; i++) {
+                for (int type = ViewType.SECTION_HEADER; type <= ViewType.SECTION_FOOTER; type++) {
+                    position += getSectionItemInSection(type, i);
                 }
             }
 
-            position += sectionPath.getIndexPath().getItem();
-            for (int sectionType = sectionPath.getSectionType() - 1; sectionType >= ViewType.SECTION_HEADER; sectionType--) {
-                position += getSectionItemInSection(sectionType, sectionPath.getIndexPath().getSection());
+            position += sp.getIndexPath().getItem();
+            for (int type = sp.getSectionType() - 1; type >= ViewType.SECTION_HEADER; type--) {
+                position += getSectionItemInSection(type, sp.getIndexPath().getSection());
             }
         }
         return position;
@@ -61,34 +61,19 @@ public abstract class BaseRecyclerCollectionAdapter {
 
     public SectionPath getSectionPath(int position) {
         for (int i = 0; i < getSections(); i++) {
-            for (int sectionType = ViewType.SECTION_HEADER; sectionType <= ViewType.SECTION_FOOTER; sectionType++) {
-                int count = getSectionItemInSection(sectionType, i);
+            for (int type = ViewType.SECTION_HEADER; type <= ViewType.SECTION_FOOTER; type++) {
+                int count = getSectionItemInSection(type, i);
                 if (position >= count) {
                     position -= count;
                 } else {
                     SectionPath sectionPath = new SectionPath();
-                    sectionPath.setSectionType(sectionType);
+                    sectionPath.setSectionType(type);
                     sectionPath.setIndexPath(new IndexPath(i, position));
                     return sectionPath;
                 }
             }
         }
         return null;
-    }
-
-    /************************************************************************************************
-     * Number of view types
-     ************************************************************************************************/
-    public int getSectionHeaderTypeCount() {
-        return 1;
-    }
-
-    public int getSectionFooterTypeCount() {
-        return 1;
-    }
-
-    public int getSectionItemTypeCount() {
-        return 1;
     }
 
     /************************************************************************************************
