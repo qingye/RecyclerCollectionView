@@ -25,7 +25,7 @@ public class RecyclerCollection {
      * [4]: refresh header
      * [5]: refresh footer
      ***********************************************************************************************/
-    private TreeMap<Integer, TreeMap<Integer, ArrayList<View>>> mapScrapSections = null;
+    private TreeMap<Integer, TreeMap<Integer, ArrayList<View>>> scrapSections = null;
 
     public RecyclerCollection(RecyclerCollectionView parentView) {
         this.parentView = parentView;
@@ -38,9 +38,9 @@ public class RecyclerCollection {
      * 2. By View's view type;
      ***********************************************************************************************/
     private void initialize() {
-        mapScrapSections = new TreeMap<>();
+        scrapSections = new TreeMap<>();
         for (Integer type = ViewType.SECTION_HEADER; type <= ViewType.VIEW_FOOTER_REFRESH; type++) {
-            mapScrapSections.put(type, new TreeMap<Integer, ArrayList<View>>());
+            scrapSections.put(type, new TreeMap<Integer, ArrayList<View>>());
         }
     }
 
@@ -61,14 +61,14 @@ public class RecyclerCollection {
         int sectionType = lp.getSectionType();
         int viewType = lp.getViewType();
         if (sectionType > ViewType.NONE && sectionType <= ViewType.VIEW_FOOTER_REFRESH) {
-            TreeMap<Integer, ArrayList<View>> map = mapScrapSections.get(sectionType);
+            TreeMap<Integer, ArrayList<View>> map = scrapSections.get(sectionType);
             ArrayList<View> list = map.get(viewType);
             if (list == null) {
                 list = new ArrayList<>();
             }
             list.add(scrap);
             map.put(viewType, list);
-            mapScrapSections.put(sectionType, map);
+            scrapSections.put(sectionType, map);
         }
     }
 
@@ -80,13 +80,13 @@ public class RecyclerCollection {
         int sectionType = sectionPath.getSectionType();
         int viewType = parentView.getAdapter().getViewTypeBySectionType(sectionType, sectionPath.indexPath);
         if (sectionType > ViewType.NONE && sectionType <= ViewType.VIEW_FOOTER_REFRESH) {
-            TreeMap<Integer, ArrayList<View>> map = mapScrapSections.get(sectionType);
+            TreeMap<Integer, ArrayList<View>> map = scrapSections.get(sectionType);
             ArrayList<View> list = map.get(viewType);
             if (list != null && list.size() > 0) {
                 view = list.remove(0);
             }
             map.put(viewType, list);
-            mapScrapSections.put(sectionType, map);
+            scrapSections.put(sectionType, map);
         }
 
         return view;
@@ -132,8 +132,8 @@ public class RecyclerCollection {
      * Make dirty and will layout at next time when be visible
      ***********************************************************************************************/
     public void makeChildrenDirty() {
-        for (Integer sectionType : mapScrapSections.keySet()) {
-            TreeMap<Integer, ArrayList<View>> map = mapScrapSections.get(sectionType);
+        for (Integer sectionType : scrapSections.keySet()) {
+            TreeMap<Integer, ArrayList<View>> map = scrapSections.get(sectionType);
             for (Integer viewType : map.keySet()) {
                 ArrayList<View> scrap = map.get(viewType);
                 if (scrap != null && scrap.size() > 0) {
@@ -149,8 +149,8 @@ public class RecyclerCollection {
      * Clear the cathe
      ***********************************************************************************************/
     public void clear() {
-        for (Integer sectionType : mapScrapSections.keySet()) {
-            TreeMap<Integer, ArrayList<View>> map = mapScrapSections.get(sectionType);
+        for (Integer sectionType : scrapSections.keySet()) {
+            TreeMap<Integer, ArrayList<View>> map = scrapSections.get(sectionType);
             for (Integer viewType : map.keySet()) {
                 ArrayList<View> scrap = map.get(viewType);
                 clearScrap(scrap);
