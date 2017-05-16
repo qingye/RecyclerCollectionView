@@ -285,14 +285,13 @@ public class RecyclerCollectionView extends ViewGroup {
 
         blockLayoutRequests = true;
         invalidate();
-
-        int childCount = getChildCount();
-        recyclerCollection.fillVisibleViews(childCount, firstPosition);
+        recyclerCollection.scrapAll();
         detachAllViewsFromParent();
 
         switch (direction) {
             case RecyclerCollectionDirection.FROM_TOP_TO_BOTTOM:
                 fillDown(findSectionByPosition(firstPosition), mPosY);
+                pinnedScrollListener.onScroll(this, firstPosition, getChildCount(), adapter.getCount());
                 break;
 
             case RecyclerCollectionDirection.FROM_BOTTOM_TO_TOP:
@@ -500,12 +499,7 @@ public class RecyclerCollectionView extends ViewGroup {
      * New view and add to parent
      ************************************************************************************************/
     private View makeAndAttachView(SectionPath sectionPath, int posY, boolean down) {
-        View child = recyclerCollection.getVisibleView(adapter.getPosition(sectionPath));
-        if (child != null) {
-            setSectionItemLayoutParam(child, sectionPath);
-        } else {
-            child = makeView(sectionPath);
-        }
+        View child = makeView(sectionPath);
         if (child != null) {
             setupChildView(sectionPath, child, posY, down);
         }
@@ -572,7 +566,7 @@ public class RecyclerCollectionView extends ViewGroup {
      ************************************************************************************************/
     private SectionPath findSectionByPosition(int position) {
         SectionPath sp = null;
-        int sections = adapter.getSections();
+        int sections = adapter != null ? adapter.getSections() : 0;
         for (int i = 0; i < sections; i++) {
             for (int sectionType = ViewType.SECTION_HEADER; sectionType <= ViewType.VIEW_FOOTER_REFRESH; sectionType++) {
                 int count = adapter.getSectionItemInSection(sectionType, i);

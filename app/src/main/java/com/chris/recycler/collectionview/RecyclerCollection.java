@@ -14,9 +14,6 @@ import java.util.TreeMap;
 public class RecyclerCollection {
 
     private RecyclerCollectionView parentView = null;
-    private int firstVisibleViewPosition = 0;
-    private View[] visibleViews = null;
-
     /***********************************************************************************************
      * Section type count and scarp [TreeMap]:
      * [1]: section header
@@ -93,39 +90,12 @@ public class RecyclerCollection {
     }
 
     /***********************************************************************************************
-     * Store Visible views in the visibleViews
+     * Scrap all views to scrapSections
      ***********************************************************************************************/
-    public void fillVisibleViews(int childCount, int firstPosition) {
-        if (visibleViews == null || visibleViews.length < childCount) {
-            visibleViews = new View[childCount];
+    public void scrapAll() {
+        for (int i = 0; i < parentView.getChildCount(); i++) {
+            addScrapView(parentView.getChildAt(i));
         }
-        firstVisibleViewPosition = firstPosition;
-
-        final View[] activeViews = visibleViews;
-        for (int i = 0; i < childCount; i++) {
-            View child = parentView.getChildAt(i);
-            RecyclerCollectionView.LayoutParams lp = (RecyclerCollectionView.LayoutParams) child.getLayoutParams();
-            if (lp != null) {
-                /***********************************************************************************
-                 * RecyclerCollectionView's header & footer will not scrap
-                 * Only section(header, footer, item) can scrap
-                 ***********************************************************************************/
-                activeViews[i] = child;
-            }
-        }
-    }
-
-    /***********************************************************************************************
-     * Position reletive to the first visible view's position
-     ***********************************************************************************************/
-    public View getVisibleView(int position) {
-        View view = null;
-        int index = position - firstVisibleViewPosition;
-        if (index >= 0 && index < visibleViews.length) {
-            view = visibleViews[index];
-            visibleViews[index] = null;
-        }
-        return view;
     }
 
     /***********************************************************************************************
