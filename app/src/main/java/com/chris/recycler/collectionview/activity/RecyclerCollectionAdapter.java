@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.chris.recycler.collectionview.R;
 import com.chris.recycler.collectionview.assistant.adapter.base.BaseRecyclerCollectionAdapter;
@@ -34,7 +35,7 @@ public class RecyclerCollectionAdapter extends BaseRecyclerCollectionAdapter {
         int count = 0;
         switch (sectionType) {
             case ViewType.SECTION_HEADER:
-                if (section != 1) {
+                if (section > 1) {
                     count = 1;
                 }
                 break;
@@ -91,7 +92,28 @@ public class RecyclerCollectionAdapter extends BaseRecyclerCollectionAdapter {
                 break;
 
             case ViewType.SECTION_ITEM:
-                viewType = 1;
+//                viewType = 1;
+                switch (indexPath.section) {
+                    case 0:
+                        viewType = 1;
+                        break;
+
+                    case 1:
+                        viewType = 2;
+                        break;
+
+                    case 2:
+                        viewType = 3;
+                        break;
+
+                    case 3:
+                        viewType = 4;
+                        break;
+
+                    default:
+                        viewType = 5;
+                        break;
+                }
                 break;
 
             case ViewType.SECTION_FOOTER:
@@ -99,6 +121,15 @@ public class RecyclerCollectionAdapter extends BaseRecyclerCollectionAdapter {
                 break;
         }
         return viewType;
+    }
+
+    @Override
+    public boolean isSectionHeaderPinned(IndexPath indexPath) {
+        boolean ret = false;
+        if (indexPath.getItem() == 0) {
+            ret = true;
+        }
+        return ret;
     }
 
     @Override
@@ -115,6 +146,13 @@ public class RecyclerCollectionAdapter extends BaseRecyclerCollectionAdapter {
 
         holder.textView.setText(String.format("SectionHeader(%d-%d)", indexPath.section, indexPath.item));
         holder.textView.setTextColor(0xff7777ff);
+        headerView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(context, "header click", Toast.LENGTH_SHORT).show();
+            }
+        });
+
         return headerView;
     }
 

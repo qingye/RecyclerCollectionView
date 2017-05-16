@@ -1,7 +1,7 @@
 package com.chris.recycler.collectionview.activity;
 
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 
 import com.chris.recycler.collectionview.Log;
 import com.chris.recycler.collectionview.R;
@@ -9,6 +9,7 @@ import com.chris.recycler.collectionview.RecyclerCollectionView;
 import com.chris.recycler.collectionview.assistant.refresh.RefreshFooterView;
 import com.chris.recycler.collectionview.assistant.refresh.RefreshHeaderView;
 import com.chris.recycler.collectionview.assistant.refresh.RefreshView;
+import com.chris.recycler.collectionview.assistant.scroll.OnScrollListener;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -23,9 +24,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initView() {
-        adapter = new RecyclerCollectionAdapter(this);
         recyclerCollectionView = (RecyclerCollectionView) findViewById(R.id.recyclerCollectionView);
-        recyclerCollectionView.setAdapter(adapter)
+        recyclerCollectionView.setAdapter(new RecyclerCollectionAdapter(this))
                 .setRefreshHeader(new RefreshHeaderView(this).setOnRefreshListener(new RefreshView.OnRefreshListener() {
                     @Override
                     public void onRefresh() {
@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
                             public void run() {
                                 recyclerCollectionView.onComplete();
                             }
-                        }, 30000);
+                        }, 5000);
                     }
                 }))
                 .setRefreshFooter(new RefreshFooterView(this).setOnRefreshListener(new RefreshView.OnRefreshListener() {
@@ -47,8 +47,17 @@ public class MainActivity extends AppCompatActivity {
                             public void run() {
                                 recyclerCollectionView.onComplete();
                             }
-                        }, 30000);
+                        }, 5000);
                     }
                 }));
+        recyclerCollectionView.setOnScrollListener(new OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(RecyclerCollectionView view, int scrollState) {
+            }
+
+            @Override
+            public void onScroll(RecyclerCollectionView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+            }
+        });
     }
 }
