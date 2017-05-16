@@ -178,6 +178,15 @@ public class RecyclerCollectionView extends ViewGroup {
     }
 
     /************************************************************************************************
+     * Scroll to sepecified section/position
+     ************************************************************************************************/
+    public void scrollToSectionPath(SectionPath sectionPath) {
+        firstPosition = adapter.getPosition(sectionPath);
+        mPosY = 0;
+        requestLayout();
+    }
+
+    /************************************************************************************************
      * Scroll listener
      ************************************************************************************************/
     public void setOnScrollListener(OnScrollListener l) {
