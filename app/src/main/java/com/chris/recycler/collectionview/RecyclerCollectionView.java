@@ -142,11 +142,6 @@ public class RecyclerCollectionView extends ViewGroup {
         this.adapter = new WrapperRecyclerCollectionAdapter(getContext(), adapter);
         dataSetObserver = new AdapterViewDataSetObserver();
         this.adapter.registerDataSetObserver(dataSetObserver);
-
-        recyclerCollection.setViewTypeCount(
-                this.adapter.getSectionHeaderTypeCount(),
-                this.adapter.getSectionFooterTypeCount(),
-                this.adapter.getSectionItemTypeCount());
         requestLayout();
         return this;
     }
