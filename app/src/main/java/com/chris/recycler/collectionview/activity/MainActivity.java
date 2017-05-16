@@ -2,6 +2,8 @@ package com.chris.recycler.collectionview.activity;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
+import android.widget.TextView;
 
 import com.chris.recycler.collectionview.Log;
 import com.chris.recycler.collectionview.R;
@@ -10,11 +12,13 @@ import com.chris.recycler.collectionview.assistant.refresh.RefreshFooterView;
 import com.chris.recycler.collectionview.assistant.refresh.RefreshHeaderView;
 import com.chris.recycler.collectionview.assistant.refresh.RefreshView;
 import com.chris.recycler.collectionview.assistant.scroll.OnScrollListener;
+import com.chris.recycler.collectionview.structure.IndexPath;
+import com.chris.recycler.collectionview.structure.SectionPath;
 
 public class MainActivity extends AppCompatActivity {
 
     private RecyclerCollectionView recyclerCollectionView = null;
-    private RecyclerCollectionAdapter adapter = null;
+    private TextView rightBtn = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,6 +28,26 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initView() {
+        initTitleBar();
+        initRecyclerCollectionView();
+    }
+
+    private void initTitleBar() {
+        rightBtn = (TextView) findViewById(R.id.rightBtn);
+        rightBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int sectionType = (int) (Math.random() * 4 + 1);
+                int section = (int) (Math.random() * 30);
+
+                SectionPath sp = new SectionPath(sectionType, new IndexPath(section));
+                recyclerCollectionView.scrollToSectionPath(sp);
+                Log.e("initTitleBar", sp);
+            }
+        });
+    }
+
+    private void initRecyclerCollectionView() {
         recyclerCollectionView = (RecyclerCollectionView) findViewById(R.id.recyclerCollectionView);
         recyclerCollectionView.setAdapter(new RecyclerCollectionAdapter(this))
                 .setRefreshHeader(new RefreshHeaderView(this).setOnRefreshListener(new RefreshView.OnRefreshListener() {
