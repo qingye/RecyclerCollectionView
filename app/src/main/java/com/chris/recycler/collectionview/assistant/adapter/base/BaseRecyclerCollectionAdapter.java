@@ -51,7 +51,8 @@ public abstract class BaseRecyclerCollectionAdapter {
                 }
             }
 
-            position += sp.getIndexPath().getItem();
+            int count = getSectionItemInSection(sp.sectionType, sp.indexPath.section);
+            position += sp.getIndexPath().getItem() < count ? sp.getIndexPath().getItem() : count;
             for (int type = sp.getSectionType() - 1; type >= ViewType.SECTION_HEADER; type--) {
                 position += getSectionItemInSection(type, sp.getIndexPath().getSection());
             }
