@@ -39,10 +39,10 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 int sectionType = (int) (Math.random() * 4 + 1);
                 int section = (int) (Math.random() * 30);
+                int item = (int) (Math.random() * 7);
 
-                SectionPath sp = new SectionPath(sectionType, new IndexPath(section));
+                SectionPath sp = new SectionPath(sectionType, new IndexPath(section, item));
                 recyclerCollectionView.scrollToSectionPath(sp);
-                Log.e("initTitleBar", sp);
             }
         });
     }
