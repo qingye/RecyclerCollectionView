@@ -181,6 +181,33 @@ public class RecyclerCollectionView extends ViewGroup {
      * Scroll to sepecified section/position
      ************************************************************************************************/
     public void scrollToSectionPath(SectionPath sectionPath) {
+        if (sectionPath == null || adapter == null) {
+            return;
+        }
+
+        /********************************************************************************************
+         * 1. Check if has refresh header
+         ********************************************************************************************/
+        if (adapter.getRefreshHeader() != null) {
+            sectionPath.indexPath.section ++;
+        }
+
+        /********************************************************************************************
+         * 2. Check the specified Section if in the range;
+         ********************************************************************************************/
+        int sections = adapter.getSections();
+        if (sectionPath.indexPath.section >= sections - 1) {
+            sectionPath.indexPath.section = sections > 0 ? sections - 1 : 0;
+        }
+
+        /********************************************************************************************
+         * 3. Only SECTION_ITEM may has column > 1, that will lead some mistake
+         ********************************************************************************************/
+        if (sectionPath.sectionType == ViewType.SECTION_ITEM &&
+                adapter.getSectionItemColumn(sectionPath.indexPath.section) > 1) {
+            sectionPath.indexPath.item = 0;
+        }
+
         firstPosition = adapter.getPosition(sectionPath);
         mPosY = 0;
         requestLayout();
@@ -293,6 +320,7 @@ public class RecyclerCollectionView extends ViewGroup {
         }
 
         blockLayoutRequests = true;
+        flingStop();
         invalidate();
         recyclerCollection.scrapAll();
         detachAllViewsFromParent();
@@ -300,7 +328,7 @@ public class RecyclerCollectionView extends ViewGroup {
         switch (direction) {
             case RecyclerCollectionDirection.FROM_TOP_TO_BOTTOM:
                 fillDown(findSectionByPosition(firstPosition), mPosY);
-                pinnedScrollListener.onScroll(this, firstPosition, getChildCount(), adapter.getCount());
+                trackPinnedView(firstPosition, getChildCount());
                 break;
 
             case RecyclerCollectionDirection.FROM_BOTTOM_TO_TOP:
@@ -882,12 +910,19 @@ public class RecyclerCollectionView extends ViewGroup {
     }
 
     /************************************************************************************************
-     * MotionEvent-Down
+     * Stop view scroll or fling
      ************************************************************************************************/
-    private void actionDown(MotionEvent event) {
+    private void flingStop() {
         if (viewFlingingRunnable.getScrollMode() != ScrollMode.NONE) {
             viewFlingingRunnable.stop();
         }
+    }
+
+    /************************************************************************************************
+     * MotionEvent-Down
+     ************************************************************************************************/
+    private void actionDown(MotionEvent event) {
+        flingStop();
     }
 
     /************************************************************************************************
@@ -1396,29 +1431,33 @@ public class RecyclerCollectionView extends ViewGroup {
                 return;
             }
 
-            boolean pinned = false;
-            SectionPath sectionPath = adapter.getSectionPath(firstVisibleItem);
-            if (sectionPath.sectionType == ViewType.SECTION_HEADER && sectionPath.indexPath.item == 0) {
-                pinned = adapter.isSectionHeaderPinned(sectionPath.getIndexPath());
-            }
-
-            if (pinned) {
-                View sectionView = getChildAt(0);
-                if (sectionView.getTop() == getPaddingTop()) {
-                    recyclerPinnedView();
-                } else {
-                    ensurePinnedView(sectionPath, firstVisibleItem, visibleItemCount);
-                }
-            } else {
-                sectionPath = findCurrentSectionPinnedView(sectionPath);
-                if (sectionPath != null) {
-                    ensurePinnedView(sectionPath, firstVisibleItem, visibleItemCount);
-                } else {
-                    recyclerPinnedView();
-                }
-            }
+            trackPinnedView(firstVisibleItem, visibleItemCount);
         }
     };
+
+    private void trackPinnedView(int firstVisibleItem, int visibleItemCount) {
+        boolean pinned = false;
+        SectionPath sectionPath = adapter.getSectionPath(firstVisibleItem);
+        if (sectionPath.sectionType == ViewType.SECTION_HEADER && sectionPath.indexPath.item == 0) {
+            pinned = adapter.isSectionHeaderPinned(sectionPath.getIndexPath());
+        }
+
+        if (pinned) {
+            View sectionView = getChildAt(0);
+            if (sectionView.getTop() == getPaddingTop()) {
+                recyclerPinnedView();
+            } else {
+                ensurePinnedView(sectionPath, firstVisibleItem, visibleItemCount);
+            }
+        } else {
+            sectionPath = findCurrentSectionPinnedView(sectionPath);
+            if (sectionPath != null) {
+                ensurePinnedView(sectionPath, firstVisibleItem, visibleItemCount);
+            } else {
+                recyclerPinnedView();
+            }
+        }
+    }
 
     private void ensurePinnedView(SectionPath sectionPath, int firstVisibleItem, int visibleItemCount) {
         if (pinnedView != null) {
