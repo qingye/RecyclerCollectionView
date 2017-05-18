@@ -37,7 +37,6 @@ public class RecyclerCollectionView extends ViewGroup {
      ***********************************************************************************************/
     private int touchSlop = 0;
     private int maxVelocity = 0;
-    private int minVelocity = 0;
     public int overflingDistance = 0;
     private VelocityTracker velocityTracker = null;
 
@@ -50,6 +49,7 @@ public class RecyclerCollectionView extends ViewGroup {
      * Scroll report
      ***********************************************************************************************/
     private OnScrollListener onScrollListener = null;
+    private int rcScrollX = 0, rcScrollY = 0;
 
     /***********************************************************************************************
      * Visible views' first real-position
@@ -129,7 +129,6 @@ public class RecyclerCollectionView extends ViewGroup {
         ViewConfiguration configuration = ViewConfiguration.get(getContext());
         touchSlop = configuration.getScaledTouchSlop();
         maxVelocity = configuration.getScaledMaximumFlingVelocity();
-        minVelocity = configuration.getScaledMinimumFlingVelocity();
         overflingDistance = configuration.getScaledOverflingDistance();
         resetVelocityTracker();
         mPosY = getPaddingTop();
@@ -401,11 +400,13 @@ public class RecyclerCollectionView extends ViewGroup {
      * - If has, we need to adjust it and do fillGap(down = true) again
      ************************************************************************************************/
     private void correctGap(boolean down) {
+        int dy = 0;
         if (!down) {
             if (firstPosition == 0) {
                 View child = getChildAt(0);
                 if (child.getTop() > getPaddingTop()) {
-                    offsetChildrenTopAndBottom(getPaddingTop() - child.getTop());
+                    dy = getPaddingTop() - child.getTop();
+                    offsetChildrenTopAndBottom(dy);
                     fillYGap(true);
                 }
             }
@@ -414,11 +415,13 @@ public class RecyclerCollectionView extends ViewGroup {
                 View child = getChildAt(getChildCount() - 1);
                 int height = getHeight() - getPaddingBottom();
                 if (child.getBottom() < height) {
-                    offsetChildrenTopAndBottom(height - child.getBottom());
+                    dy = height - child.getBottom();
+                    offsetChildrenTopAndBottom(dy);
                     fillYGap(false);
                 }
             }
         }
+        invokeScroll(0, -dy);
     }
 
     /************************************************************************************************
@@ -1096,6 +1099,22 @@ public class RecyclerCollectionView extends ViewGroup {
     }
 
     /************************************************************************************************
+     * Update scroll x and y
+     ************************************************************************************************/
+    private void invokeScroll(int dx, int dy) {
+        rcScrollX += dx;
+        rcScrollY += dy;
+    }
+
+    public int getCurScrollX() {
+        return rcScrollX;
+    }
+
+    public int getCurScrollY() {
+        return rcScrollY;
+    }
+
+    /************************************************************************************************
      * offset children's top, bottom, left, right
      ************************************************************************************************/
     private void doScroll(int deltaX, int deltaY) {
@@ -1144,6 +1163,7 @@ public class RecyclerCollectionView extends ViewGroup {
         } else if (direction >= RecyclerCollectionDirection.FROM_LEFT_TO_RIGHT) {
             offsetChildrenLeftAndRight(-deltaX);
         }
+        invokeScroll(deltaX, deltaY);
 
         final int spaceAbove = getPaddingTop() - firstTop;
         final int end = getHeight() - getPaddingBottom();
