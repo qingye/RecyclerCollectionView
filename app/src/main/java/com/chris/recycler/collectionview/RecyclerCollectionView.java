@@ -189,7 +189,7 @@ public class RecyclerCollectionView extends ViewGroup {
          * 1. Check if has refresh header
          ********************************************************************************************/
         if (adapter.getRefreshHeader() != null) {
-            sectionPath.indexPath.section ++;
+            sectionPath.indexPath.section++;
         }
 
         /********************************************************************************************
@@ -396,7 +396,7 @@ public class RecyclerCollectionView extends ViewGroup {
      * Correct Top or Bottom Gap when scroll to the first or last child:
      * 1. First child's top may be too low that has a gap;
      * - If has, we need to adjust it and do fillGap(down = false) again
-     * <p/>
+     * <p>
      * 2. Last child's bottom may be too high that has a gap;
      * - If has, we need to adjust it and do fillGap(down = true) again
      ************************************************************************************************/
@@ -965,15 +965,7 @@ public class RecyclerCollectionView extends ViewGroup {
             velocityTracker.computeCurrentVelocity(1000, maxVelocity);
             int initVelocityX = (int) velocityTracker.getXVelocity();
             int initVelocityY = (int) velocityTracker.getYVelocity();
-            if (getScrollY() != 0) {
-                if (Math.abs(initVelocityY) < minVelocity) {
-                    viewFlingingRunnable.startSpringback();
-                } else {
-                    viewFlingingRunnable.fling(initVelocityX, initVelocityY);
-                }
-            } else {
-                viewFlingingRunnable.start(initVelocityX, initVelocityY);
-            }
+            viewFlingingRunnable.start(initVelocityX, initVelocityY);
         }
         resetVelocityTracker();
     }
@@ -1331,13 +1323,13 @@ public class RecyclerCollectionView extends ViewGroup {
 
     /************************************************************************************************
      * Scroller code block
-     * <p/>
+     * <p>
      * 1. overScrollBy be used by OverScroller;
      * 2. onOverScrolled should be override when use View.overScrollBy;
      * 3. When use View.overScrollBy, then should give:
      * - 3.1 override computeVerticalScrollRange
      * - 3.2 override computeVerticalScrollExtent
-     * <p/>
+     * <p>
      * Notice: only fling will trigger these operation, start won't
      ************************************************************************************************/
     public boolean overScrollBy(int dx, int dy, int sx, int sy, int srx, int sry, int osx, int osy, boolean tv) {
@@ -1394,9 +1386,9 @@ public class RecyclerCollectionView extends ViewGroup {
      * 1. Scroll Listener for monitor;
      * 2. DispatchDraw: draw pinned view in canvas;
      * 3. Check PinnedView if touched;
-     *    - isPinnedViewTouched
-     *    - performPinnedViewClick
-     *    - clearTouchTarget
+     * - isPinnedViewTouched
+     * - performPinnedViewClick
+     * - clearTouchTarget
      ************************************************************************************************/
     @Override
     protected void dispatchDraw(Canvas canvas) {
