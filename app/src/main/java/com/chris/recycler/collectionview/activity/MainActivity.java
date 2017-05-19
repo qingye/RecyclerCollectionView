@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
                 int item = (int) (Math.random() * 7);
 
                 SectionPath sp = new SectionPath(sectionType, new IndexPath(section, item));
-                recyclerCollectionView.scrollToSectionPath(sp);
+                recyclerCollectionView.smoothToSectionPath(sp);
             }
         });
     }
