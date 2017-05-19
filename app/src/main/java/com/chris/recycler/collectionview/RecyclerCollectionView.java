@@ -18,6 +18,7 @@ import com.chris.recycler.collectionview.assistant.adapter.observer.AdapterViewD
 import com.chris.recycler.collectionview.assistant.adapter.wrapper.WrapperRecyclerCollectionAdapter;
 import com.chris.recycler.collectionview.assistant.refresh.RefreshView;
 import com.chris.recycler.collectionview.assistant.scroll.OnScrollListener;
+import com.chris.recycler.collectionview.assistant.scroll.SmoothScroller;
 import com.chris.recycler.collectionview.constants.RecyclerCollectionDirection;
 import com.chris.recycler.collectionview.constants.ScrollMode;
 import com.chris.recycler.collectionview.constants.ViewType;
@@ -180,10 +181,23 @@ public class RecyclerCollectionView extends ViewGroup {
      * Scroll to sepecified section/position
      ************************************************************************************************/
     public void scrollToSectionPath(SectionPath sectionPath) {
-        if (sectionPath == null || adapter == null) {
-            return;
+        firstPosition = getScrollPosition(sectionPath);
+        mPosY = 0;
+        requestLayout();
+    }
+
+    public void smoothToSectionPath(SectionPath sectionPath) {
+        int position = getScrollPosition(sectionPath);
+        viewFlingingRunnable.setSmoothScroller(new SmoothScroller(sectionPath, smoothScrollerCB));
+        viewFlingingRunnable.start(0, position > firstPosition ? -10000 : 10000);
+    }
+
+    private int getScrollPosition(SectionPath sp) {
+        if (sp == null || adapter == null) {
+            return 0;
         }
 
+        SectionPath sectionPath = new SectionPath(sp);
         /********************************************************************************************
          * 1. Check if has refresh header
          ********************************************************************************************/
@@ -207,10 +221,17 @@ public class RecyclerCollectionView extends ViewGroup {
             sectionPath.indexPath.item = 0;
         }
 
-        firstPosition = adapter.getPosition(sectionPath);
-        mPosY = 0;
-        requestLayout();
+        return adapter.getPosition(sectionPath);
     }
+
+    private SmoothScroller.CallbackListener smoothScrollerCB = new SmoothScroller.CallbackListener() {
+        @Override
+        public void scrollFinish(SmoothScroller smoothScroller) {
+            if (smoothScroller != null) {
+                scrollToSectionPath(smoothScroller.sectionPath);
+            }
+        }
+    };
 
     /************************************************************************************************
      * Scroll listener

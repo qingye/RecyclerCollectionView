@@ -1,10 +1,12 @@
 package com.chris.recycler.collectionview;
 
 import android.support.v4.view.ViewCompat;
+import android.view.animation.AccelerateInterpolator;
 import android.view.animation.LinearInterpolator;
 import android.widget.OverScroller;
 
 import com.chris.recycler.collectionview.assistant.scroll.OnScrollListener;
+import com.chris.recycler.collectionview.assistant.scroll.SmoothScroller;
 import com.chris.recycler.collectionview.constants.ScrollMode;
 import com.chris.recycler.collectionview.structure.Point;
 
@@ -17,15 +19,20 @@ public class ViewFlingingRunnable implements Runnable {
     private RecyclerCollectionView parent = null;
     private OnScrollListener onScrollListener = null;
     private OverScroller overScroller = null;
+    private SmoothScroller smoothScroller = null;
     private Point lastFling = null;
 
     public ViewFlingingRunnable(RecyclerCollectionView parent) {
         this.parent = parent;
-        overScroller = new OverScroller(parent.getContext(), new LinearInterpolator());
+        overScroller = new OverScroller(parent.getContext(), new AccelerateInterpolator());
     }
 
     public void setOnScrollListener(OnScrollListener l) {
         this.onScrollListener = l;
+    }
+
+    public void setSmoothScroller(SmoothScroller scroller) {
+        smoothScroller = scroller;
     }
 
     public int getScrollMode() {
@@ -74,6 +81,10 @@ public class ViewFlingingRunnable implements Runnable {
         scrollMode = ScrollMode.NONE;
         if (onScrollListener != null) {
             onScrollListener.onScrollStateChanged(parent, OnScrollListener.SCROLL_STATE_IDLE);
+        }
+        if (smoothScroller != null) {
+            smoothScroller.scrollFinish(smoothScroller);
+            smoothScroller = null;
         }
         parent.removeCallbacks(this);
         overScroller.abortAnimation();
