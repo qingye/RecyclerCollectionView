@@ -187,9 +187,21 @@ public abstract class BaseRecyclerCollectionAdapter {
     public abstract View getSectionItemView(IndexPath indexPath, View itemView, ViewGroup parent);
 
     /************************************************************************************************
-     * Only SectionHeader has Pinned Option
+     * 1. Only SectionHeader has Pinned Option
+     * 2. Continuous Sections can have a PinnedView depend on associateSectionHeaderPinned
+     * 2.1 Only non-refresh section can has an associate with other PinnedView;
+     * 2.2 Only sections after PinnedView Of the section can has an assocation;
+     *
+     * e.g.
+     * 2.3.1 Section 4 has a PinnedView, then Section [4, N-1] (N-1 != refresh) can have an association;
+     * 2.3.2 Section 4, 10 has a PinnedView, then Section [4, 9] can have associate with Section 4,
+     * after can not;
      ************************************************************************************************/
     public boolean isSectionHeaderPinned(IndexPath indexPath) {
+        return false;
+    }
+
+    public boolean associateSectionHeaderPinned(IndexPath indexPath) {
         return false;
     }
 }

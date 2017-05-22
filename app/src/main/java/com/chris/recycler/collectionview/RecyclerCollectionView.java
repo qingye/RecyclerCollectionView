@@ -1503,7 +1503,7 @@ public class RecyclerCollectionView extends ViewGroup {
         if (pinnedView == null && sectionPath.sectionType == ViewType.SECTION_HEADER && sectionPath.indexPath.item == 0) {
             makePinnedView(sectionPath);
         }
-        checkNextPinnedView(sectionPath, firstVisibleItem, visibleItemCount);
+        checkNextPinnedView(firstVisibleItem, visibleItemCount);
     }
 
     private void makePinnedView(SectionPath sectionPath) {
@@ -1513,20 +1513,28 @@ public class RecyclerCollectionView extends ViewGroup {
         translateY = 0;
     }
 
-    private void checkNextPinnedView(SectionPath sectionPath, int firstVisibleItem, int visibleItemCount) {
-        SectionPath sp = new SectionPath(sectionPath);
+    private void checkNextPinnedView(int firstVisibleItem, int visibleItemCount) {
+        SectionPath sp = adapter.getSectionPath(firstVisibleItem);
+        sp.sectionType = ViewType.SECTION_HEADER;
+        sp.indexPath.item = 0;
         sp.indexPath.section++;
+
         if (sp.indexPath.section < adapter.getSections()) {
             int pos = adapter.getPosition(sp);
             if (pos > -1 && firstVisibleItem + visibleItemCount > pos) {
                 if (adapter.isSectionHeaderPinned(sp.getIndexPath())) {
-                    View nextPinnedView = getChildAt(pos - firstVisibleItem);
-                    final int bottom = pinnedView.getBottom() + getPaddingTop();
-                    int distanceY = nextPinnedView.getTop() - bottom;
-                    if (distanceY < 0) {
-                        translateY = distanceY;
-                    } else {
+                    if (adapter.getSectionItemInSection(sp.getSectionType(), sp.getIndexPath().getSection()) == 0 &&
+                            adapter.associateSectionHeaderPinned(new IndexPath(sp.indexPath))) {
                         translateY = 0;
+                    } else {
+                        View nextPinnedView = getChildAt(pos - firstVisibleItem);
+                        final int bottom = pinnedView.getBottom() + getPaddingTop();
+                        int distanceY = nextPinnedView.getTop() - bottom;
+                        if (distanceY < 0) {
+                            translateY = distanceY;
+                        } else {
+                            translateY = 0;
+                        }
                     }
                 }
             }
@@ -1537,9 +1545,36 @@ public class RecyclerCollectionView extends ViewGroup {
         SectionPath sp = new SectionPath(sectionPath);
         sp.setSectionType(ViewType.SECTION_HEADER);
         sp.indexPath.setItem(0);
+
+        /********************************************************************************************
+         * Self section has a section header, and pinned = true
+         ********************************************************************************************/
         if (adapter.getSectionItemInSection(sp.getSectionType(), sp.getIndexPath().getSection()) > 0 &&
                 adapter.isSectionHeaderPinned(sp.getIndexPath())) {
             return sp;
+        }
+
+        /********************************************************************************************
+         * Self section hasn't a section header, but has an association PinnedView
+         ********************************************************************************************/
+        if (adapter.associateSectionHeaderPinned(new IndexPath(sectionPath.indexPath))) {
+            return findNearestPinnedViewSection(sectionPath);
+        }
+        return null;
+    }
+
+    private SectionPath findNearestPinnedViewSection(SectionPath sectionPath) {
+        SectionPath sp = new SectionPath(sectionPath);
+        sp.setSectionType(ViewType.SECTION_HEADER);
+        sp.indexPath.setItem(0);
+
+        int end = adapter.getRefreshHeader() != null ? 1 : 0;
+        for (int section = sp.indexPath.section - 1; section >= end; section --) {
+            if (adapter.getSectionItemInSection(sp.sectionType, section) > 0 &&
+                    adapter.isSectionHeaderPinned(new IndexPath(section, 0))) {
+                sp.indexPath.section = section;
+                return sp;
+            }
         }
         return null;
     }

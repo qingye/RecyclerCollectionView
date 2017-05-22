@@ -222,4 +222,16 @@ public final class WrapperRecyclerCollectionAdapter extends BaseRecyclerCollecti
         }
         return ret;
     }
+
+    @Override
+    public boolean associateSectionHeaderPinned(IndexPath indexPath) {
+        boolean associate = false;
+        if (refreshHeader != null && indexPath.section == 0 ||
+                refreshFooter != null && indexPath.section == getSections() - 1) {
+            associate = false;
+        } else if (innerAdapter != null){
+            associate = innerAdapter.associateSectionHeaderPinned(getInnerIndexPath(indexPath));
+        }
+        return associate;
+    }
 }
