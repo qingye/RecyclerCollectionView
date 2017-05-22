@@ -35,7 +35,7 @@ public class RecyclerCollectionAdapter extends BaseRecyclerCollectionAdapter {
         int count = 0;
         switch (sectionType) {
             case ViewType.SECTION_HEADER:
-                if (section > 1) {
+                if (section == 2 || section == 6 || section == 3) {
                     count = 1;
                 }
                 break;
@@ -130,6 +130,11 @@ public class RecyclerCollectionAdapter extends BaseRecyclerCollectionAdapter {
             ret = true;
         }
         return ret;
+    }
+
+    @Override
+    public boolean associateSectionHeaderPinned(IndexPath indexPath) {
+        return true;
     }
 
     @Override
