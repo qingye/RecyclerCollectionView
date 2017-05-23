@@ -92,7 +92,6 @@ public class RecyclerCollectionAdapter extends BaseRecyclerCollectionAdapter {
                 break;
 
             case ViewType.SECTION_ITEM:
-//                viewType = 1;
                 switch (indexPath.section) {
                     case 0:
                         viewType = 1;

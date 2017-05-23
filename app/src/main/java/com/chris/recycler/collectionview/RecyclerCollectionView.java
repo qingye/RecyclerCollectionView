@@ -953,7 +953,7 @@ public class RecyclerCollectionView extends ViewGroup {
      * MotionEvent-Move
      ************************************************************************************************/
     private void motionMove(MotionEvent event) {
-        int deltaX = 0;
+        int deltaX = (int) (lastPoint.x - event.getX());
         int deltaY = (int) (lastPoint.y - event.getY());
         lastPoint.setPoint((int) event.getX(), (int) event.getY());
         boolean cantScroll = trackScroll(deltaX, deltaY);

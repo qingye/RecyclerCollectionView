@@ -11,12 +11,6 @@ public class ViewType {
     public static final int NONE = 0x0;
 
     /******************************************************************************************
-     * RecyclerCollectionView's header & footer
-     ******************************************************************************************/
-//    public static final int VIEW_HEADER_REFRESH = 0x100;
-//    public static final int VIEW_FOOTER_REFRESH = 0x101;
-
-    /******************************************************************************************
      * Section's header, item, footer
      ******************************************************************************************/
     public static final int SECTION_HEADER = 0x1;
