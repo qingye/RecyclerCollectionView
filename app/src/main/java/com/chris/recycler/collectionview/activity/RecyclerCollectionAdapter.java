@@ -76,6 +76,10 @@ public class RecyclerCollectionAdapter extends BaseRecyclerCollectionAdapter {
                 column = 4;
                 break;
 
+            case 4:
+                column = 1;
+                break;
+
             default:
                 column = 5;
                 break;
