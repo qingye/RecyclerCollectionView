@@ -1,7 +1,6 @@
 package com.chris.recycler.collectionview;
 
 import android.support.v4.view.ViewCompat;
-import android.view.animation.AccelerateInterpolator;
 import android.view.animation.LinearInterpolator;
 import android.widget.OverScroller;
 
@@ -24,7 +23,7 @@ public class ViewFlingingRunnable implements Runnable {
 
     public ViewFlingingRunnable(RecyclerCollectionView parent) {
         this.parent = parent;
-        overScroller = new OverScroller(parent.getContext(), new AccelerateInterpolator());
+        overScroller = new OverScroller(parent.getContext(), new LinearInterpolator());
     }
 
     public void setOnScrollListener(OnScrollListener l) {
