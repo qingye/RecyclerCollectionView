@@ -423,7 +423,7 @@ public class RecyclerCollectionView extends ViewGroup {
      * Correct Top or Bottom Gap when scroll to the first or last child:
      * 1. First child's top may be too low that has a gap;
      * - If has, we need to adjust it and do fillGap(down = false) again
-     * <p/>
+     * <p>
      * 2. Last child's bottom may be too high that has a gap;
      * - If has, we need to adjust it and do fillGap(down = true) again
      ************************************************************************************************/
@@ -585,6 +585,7 @@ public class RecyclerCollectionView extends ViewGroup {
         }
         if (child != null) {
             setSectionItemLayoutParam(child, sectionPath);
+            measureChild(child);
         } else {
             throw new RuntimeException("convertView is null?");
         }
@@ -595,7 +596,6 @@ public class RecyclerCollectionView extends ViewGroup {
      * Attach child to the parent
      ************************************************************************************************/
     private void setupChildView(SectionPath sectionPath, View child, int y, boolean down) {
-        measureChild(child);
         Point point = adjust(sectionPath, child, y, down);
         addView(child, down ? -1 : 0);
         child.layout(point.x, point.y, point.x + child.getMeasuredWidth(), point.y + child.getMeasuredHeight());
@@ -748,7 +748,6 @@ public class RecyclerCollectionView extends ViewGroup {
                 view = getChildAt(childCount - items + i);
             } else {
                 view = makeView(path);
-                measureChild(view);
                 recyclerCollection.addScrapView(view);
             }
 
@@ -824,7 +823,6 @@ public class RecyclerCollectionView extends ViewGroup {
      ************************************************************************************************/
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
-        Log.e("dispatchTouchEvent ev.action = " + ev.getAction());
         if (ev.getAction() == MotionEvent.ACTION_DOWN && pinnedView != null &&
                 touchTarget == null && isPinnedViewTouched(ev.getX(), ev.getY())) {
             touchTarget = pinnedView;
@@ -936,11 +934,11 @@ public class RecyclerCollectionView extends ViewGroup {
         int deltaX = lastPoint.x - x;
         int deltaY = lastPoint.y - y;
 
-        if (direction <= RCDirection.BOTTOM_TO_TOP &&
-                Math.abs(deltaY) > touchSlop && Math.abs(deltaY) > Math.abs(deltaX)) {
+        if (direction <= RCDirection.BOTTOM_TO_TOP && Math.abs(deltaY) > touchSlop &&
+                Math.abs(deltaY) > Math.abs(deltaX)) {
             need = true;
-        } else if (direction >= RCDirection.LEFT_TO_RIGHT &&
-                Math.abs(deltaX) > touchSlop && Math.abs(deltaX) > Math.abs(deltaY)) {
+        } else if (direction >= RCDirection.LEFT_TO_RIGHT && Math.abs(deltaX) > touchSlop &&
+                Math.abs(deltaX) > Math.abs(deltaY)) {
             need = true;
         }
         return need;
@@ -952,8 +950,10 @@ public class RecyclerCollectionView extends ViewGroup {
         if (swap == SwapDirection.NONE && swapView == null) {
             int deltaX = lastPoint.x - x;
             int deltaY = lastPoint.y - y;
-            boolean canSwap = (direction <= RCDirection.BOTTOM_TO_TOP && Math.abs(deltaX) > Math.abs(deltaY) ||
-                    direction >= RCDirection.LEFT_TO_RIGHT && Math.abs(deltaX) < Math.abs(deltaY));
+            boolean canSwap = (direction <= RCDirection.BOTTOM_TO_TOP && Math.abs(deltaX) > touchSlop &&
+                               Math.abs(deltaX) > Math.abs(deltaY) ||
+                               direction >= RCDirection.LEFT_TO_RIGHT && Math.abs(deltaY) > touchSlop &&
+                               Math.abs(deltaX) < Math.abs(deltaY));
 
             int count = getChildCount();
             for (int i = 0; i < count; i++) {
@@ -1434,13 +1434,13 @@ public class RecyclerCollectionView extends ViewGroup {
 
     /************************************************************************************************
      * Scroller code block
-     * <p/>
+     * <p>
      * 1. overScrollBy be used by OverScroller;
      * 2. onOverScrolled should be override when use View.overScrollBy;
      * 3. When use View.overScrollBy, then should give:
      * - 3.1 override computeVerticalScrollRange
      * - 3.2 override computeVerticalScrollExtent
-     * <p/>
+     * <p>
      * Notice: only fling will trigger these operation, start won't
      ************************************************************************************************/
     public boolean overScrollBy(int dx, int dy, int sx, int sy, int srx, int sry, int osx, int osy, boolean tv) {
@@ -1578,7 +1578,6 @@ public class RecyclerCollectionView extends ViewGroup {
 
     private void makePinnedView(SectionPath sectionPath) {
         pinnedView = makeView(sectionPath);
-        measureChild(pinnedView);
         pinnedView.layout(0, 0, pinnedView.getMeasuredWidth(), pinnedView.getMeasuredHeight());
         translateY = 0;
     }
@@ -1783,7 +1782,7 @@ public class RecyclerCollectionView extends ViewGroup {
         params.setViewType(adapter.getViewTypeBySectionType(sectionPath.sectionType, sectionPath.indexPath));
         if (sectionPath.sectionType == ViewType.SECTION_ITEM) {
             params.setColumn(adapter.getSectionItemColumn(sectionPath.indexPath.section));
-        } else if (sectionPath.sectionType >= ViewType.VIEW_HEADER_REFRESH) {
+        } else if (sectionPath.sectionType >= ViewType.VIEW_HEADER_REFRESH && sectionPath.sectionType <= ViewType.VIEW_FOOTER_REFRESH) {
             if (sectionPath.sectionType == ViewType.VIEW_HEADER_REFRESH && adapter.getRefreshHeader() != null
                     && adapter.getRefreshHeader().getStatus() == RefreshView.REFRESH_STATUS_NONE) {
                 params.height = 0;
