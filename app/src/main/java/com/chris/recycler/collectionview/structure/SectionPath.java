@@ -8,6 +8,7 @@ import com.chris.recycler.collectionview.constants.ViewType;
 public class SectionPath {
 
     public int sectionType = ViewType.NONE;
+    public int subType = ViewType.NONE;
     public IndexPath indexPath = new IndexPath();
 
     public SectionPath() {
@@ -24,6 +25,7 @@ public class SectionPath {
 
     public SectionPath(SectionPath sectionPath) {
         setSectionType(sectionPath.sectionType);
+        setSubType(sectionPath.subType);
         setIndexPath(sectionPath.indexPath);
     }
 
@@ -33,6 +35,14 @@ public class SectionPath {
 
     public void setSectionType(int sectionType) {
         this.sectionType = sectionType;
+    }
+
+    public int getSubType() {
+        return subType;
+    }
+
+    public void setSubType(int subType) {
+        this.subType = subType;
     }
 
     public IndexPath getIndexPath() {
@@ -55,7 +65,8 @@ public class SectionPath {
 
         if (o instanceof SectionPath) {
             SectionPath sp = (SectionPath) o;
-            if (this.sectionType == sp.sectionType && this.indexPath.equals(sp.getIndexPath())) {
+            if (this.sectionType == sp.sectionType && this.subType == sp.subType &&
+                    this.indexPath.equals(sp.getIndexPath())) {
                 return true;
             }
         }
