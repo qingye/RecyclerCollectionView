@@ -19,6 +19,7 @@ import com.chris.recycler.collectionview.assistant.adapter.wrapper.WrapperRecycl
 import com.chris.recycler.collectionview.assistant.refresh.RefreshView;
 import com.chris.recycler.collectionview.assistant.scroll.OnScrollListener;
 import com.chris.recycler.collectionview.assistant.scroll.SmoothScroller;
+import com.chris.recycler.collectionview.assistant.swap.SwapView;
 import com.chris.recycler.collectionview.constants.RCDirection;
 import com.chris.recycler.collectionview.constants.ScrollMode;
 import com.chris.recycler.collectionview.constants.SwapDirection;

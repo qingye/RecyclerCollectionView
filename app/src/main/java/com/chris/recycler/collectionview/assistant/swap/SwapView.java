@@ -1,13 +1,13 @@
-package com.chris.recycler.collectionview;
+package com.chris.recycler.collectionview.assistant.swap;
 
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
 import android.util.AttributeSet;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.chris.recycler.collectionview.RecyclerCollectionView;
 import com.chris.recycler.collectionview.constants.SwapDirection;
 import com.chris.recycler.collectionview.constants.ViewType;
 import com.chris.recycler.collectionview.structure.SectionPath;
