@@ -16,11 +16,6 @@ public class RecyclerCollection {
     private RecyclerCollectionView parentView = null;
     /***********************************************************************************************
      * Section type count and scarp [TreeMap]:
-     * [1]: section header
-     * [2]: section item
-     * [3]: section footer
-     * [4]: refresh header
-     * [5]: refresh footer
      ***********************************************************************************************/
     private TreeMap<Integer, TreeMap<Integer, ArrayList<View>>> scrapSections = null;
 
@@ -36,7 +31,7 @@ public class RecyclerCollection {
      ***********************************************************************************************/
     private void initialize() {
         scrapSections = new TreeMap<>();
-        for (Integer type = ViewType.SECTION_HEADER; type <= ViewType.VIEW_FOOTER_REFRESH; type++) {
+        for (Integer type = ViewType.SECTION_HEADER; type <= ViewType.SECTION_COMPOSITE; type++) {
             scrapSections.put(type, new TreeMap<Integer, ArrayList<View>>());
         }
     }
@@ -57,7 +52,10 @@ public class RecyclerCollection {
 
         int sectionType = lp.getSectionType();
         int viewType = lp.getViewType();
-        if (sectionType > ViewType.NONE && sectionType <= ViewType.VIEW_FOOTER_REFRESH) {
+        if (lp.getSectionPath().subType == ViewType.SECTION_COMPOSITE) {
+            sectionType = lp.getSectionPath().subType;
+        }
+        if (sectionType > ViewType.NONE && sectionType <= ViewType.SECTION_COMPOSITE) {
             TreeMap<Integer, ArrayList<View>> map = scrapSections.get(sectionType);
             ArrayList<View> list = map.get(viewType);
             if (list == null) {
@@ -76,13 +74,18 @@ public class RecyclerCollection {
         View view = null;
         int sectionType = sectionPath.getSectionType();
         int viewType = parentView.getAdapter().getViewTypeBySectionType(sectionType, sectionPath.indexPath);
-        if (sectionType > ViewType.NONE && sectionType <= ViewType.VIEW_FOOTER_REFRESH) {
+        if (sectionPath.subType == ViewType.SECTION_COMPOSITE) {
+            sectionType = sectionPath.subType;
+        }
+        if (sectionType > ViewType.NONE && sectionType <= ViewType.SECTION_COMPOSITE) {
             TreeMap<Integer, ArrayList<View>> map = scrapSections.get(sectionType);
             ArrayList<View> list = map.get(viewType);
             if (list != null && list.size() > 0) {
                 view = list.remove(0);
             }
-            map.put(viewType, list);
+            if (list != null) {
+                map.put(viewType, list);
+            }
             scrapSections.put(sectionType, map);
         }
 

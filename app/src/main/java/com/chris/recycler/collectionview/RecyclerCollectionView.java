@@ -106,7 +106,7 @@ public class RecyclerCollectionView extends ViewGroup {
      * Swap
      ***********************************************************************************************/
     private int swap = 0;
-    private View swapView = null;
+    private View swapItemView = null;
 
     /***********************************************************************************************
      * Begin
@@ -182,6 +182,16 @@ public class RecyclerCollectionView extends ViewGroup {
     public void onComplete() {
         Log.e("onComplete");
         releaseRefresh(0);
+    }
+
+    /************************************************************************************************
+     * Swap
+     ************************************************************************************************/
+    public RecyclerCollectionView setSwap() {
+        if (adapter != null) {
+            adapter.setSwap(true);
+        }
+        return this;
     }
 
     /************************************************************************************************
@@ -423,7 +433,7 @@ public class RecyclerCollectionView extends ViewGroup {
      * Correct Top or Bottom Gap when scroll to the first or last child:
      * 1. First child's top may be too low that has a gap;
      * - If has, we need to adjust it and do fillGap(down = false) again
-     * <p>
+     * <p/>
      * 2. Last child's bottom may be too high that has a gap;
      * - If has, we need to adjust it and do fillGap(down = true) again
      ************************************************************************************************/
@@ -534,6 +544,9 @@ public class RecyclerCollectionView extends ViewGroup {
                         if (j < column) {
                             posY = getChildAt(childCount - 1).getTop();
                         } else {
+                            if (getChildAt(childCount + index) == null) {
+                                Log.e("fillSectionView", sectionPath);
+                            }
                             posY = getChildAt(childCount + index).getBottom();
                         }
                     }
@@ -578,8 +591,19 @@ public class RecyclerCollectionView extends ViewGroup {
      * New view from adapter or from scrap that reused
      ************************************************************************************************/
     private View makeView(SectionPath sectionPath) {
-        View scrapView = recyclerCollection.getScrapView(sectionPath);
-        View child = adapter.getSectionView(sectionPath, scrapView, this);
+        View scrapView = null;
+        View child = null;
+
+        if (adapter.isSwap() && sectionPath.sectionType == ViewType.SECTION_ITEM &&
+                adapter.getSectionItemColumn(sectionPath.indexPath.section) == 1) {
+            sectionPath.subType = ViewType.SECTION_COMPOSITE;
+            scrapView = recyclerCollection.getScrapView(sectionPath);
+            child = makeCompositeView(sectionPath, scrapView);
+        } else {
+            scrapView = recyclerCollection.getScrapView(sectionPath);
+            child = adapter.getSectionView(sectionPath, scrapView, this);
+        }
+
         if (scrapView != null && scrapView != child) {
             throw new RuntimeException("forgot to reused?");
         }
@@ -590,6 +614,15 @@ public class RecyclerCollectionView extends ViewGroup {
             throw new RuntimeException("convertView is null?");
         }
         return child;
+    }
+
+    private View makeCompositeView(SectionPath sectionPath, View scrapView) {
+        SwapView swapView = (SwapView) scrapView;
+        if (swapView == null) {
+            swapView = new SwapView(getContext());
+        }
+        swapView.setItem(sectionPath, this).forceLayout();
+        return swapView;
     }
 
     /************************************************************************************************
@@ -876,9 +909,8 @@ public class RecyclerCollectionView extends ViewGroup {
                 touchPosition = findTouchIndex((int) event.getX(), (int) event.getY());
                 if (viewFlingingRunnable.getScrollMode() > ScrollMode.NONE) {
                     return true;
-                } else if (swap > SwapDirection.NONE && swapView != null) {
-                    swapView = null;
-                    requestLayout();
+                } else if (swap > SwapDirection.NONE && swapItemView != null) {
+                    resetSwap((int) event.getX(), (int) event.getY());
                     return true;
                 }
                 break;
@@ -947,7 +979,7 @@ public class RecyclerCollectionView extends ViewGroup {
     private boolean checkNeedSwap(int x, int y) {
         boolean ret = false;
 
-        if (swap == SwapDirection.NONE && swapView == null) {
+        if (swap == SwapDirection.NONE && swapItemView == null) {
             int deltaX = lastPoint.x - x;
             int deltaY = lastPoint.y - y;
             boolean canSwap = (direction <= RCDirection.BOTTOM_TO_TOP && Math.abs(deltaX) > touchSlop &&
@@ -962,7 +994,7 @@ public class RecyclerCollectionView extends ViewGroup {
                     LayoutParams lp = (LayoutParams) view.getLayoutParams();
                     if (lp.getSectionType() == ViewType.SECTION_ITEM && lp.column == 1 && canSwap) {
                         swap = direction <= RCDirection.BOTTOM_TO_TOP ? SwapDirection.HORIZONTAL : SwapDirection.VERTICAL;
-                        swapView = view;
+                        swapItemView = view;
                         ret = true;
                     }
                     break;
@@ -972,7 +1004,7 @@ public class RecyclerCollectionView extends ViewGroup {
         return ret;
     }
 
-    private boolean isViewTouched(View view, float x, float y) {
+    public boolean isViewTouched(View view, float x, float y) {
         if (view != null) {
             Rect rect = new Rect();
             view.getHitRect(rect);
@@ -1005,14 +1037,19 @@ public class RecyclerCollectionView extends ViewGroup {
         int deltaY = (int) (lastPoint.y - event.getY());
         lastPoint.setPoint((int) event.getX(), (int) event.getY());
 
+        /********************************************************************************************
+         * Swap the view to show the menus
+         ********************************************************************************************/
         if (swap > SwapDirection.NONE) {
-            doSwap(deltaX, deltaY);
+            if (swapItemView != null) {
+                ((SwapView)swapItemView).swap(swap, deltaX, deltaY);
+            }
         } else {
             boolean cantScroll = trackScroll(deltaX, deltaY);
 
-            /********************************************************************************************
+            /****************************************************************************************
              * cantScroll = true means at top or at bottom
-             ********************************************************************************************/
+             ****************************************************************************************/
             if (cantScroll) {
                 trackRefresh(deltaX, deltaY);
             }
@@ -1036,7 +1073,7 @@ public class RecyclerCollectionView extends ViewGroup {
                 releaseRefresh(2);
             }
 
-            if (swap > SwapDirection.NONE && swapView == null) {
+            if (swap > SwapDirection.NONE && swapItemView == null) {
                 swap = SwapDirection.NONE;
             }
 
@@ -1255,16 +1292,15 @@ public class RecyclerCollectionView extends ViewGroup {
     }
 
     /************************************************************************************************
-     * Swap the view to show the menus
+     * Check and Perform Swap Menus
      ************************************************************************************************/
-    private void doSwap(int deltaX, int deltaY) {
-        if (swapView != null) {
-            if (swap == SwapDirection.HORIZONTAL) {
-                swapView.offsetLeftAndRight(-deltaX);
-            } else if (swap == SwapDirection.VERTICAL) {
-                swapView.offsetTopAndBottom(-deltaY);
-            }
+    private void resetSwap(int x, int y) {
+        SwapView swapView = (SwapView) swapItemView;
+        if (isViewTouched(swapView, x, y)) {
+            swapView.swapViewHint(x, y - swapView.getTop());
         }
+        swapView.reset();
+        swapItemView = null;
     }
 
     /************************************************************************************************
@@ -1434,13 +1470,13 @@ public class RecyclerCollectionView extends ViewGroup {
 
     /************************************************************************************************
      * Scroller code block
-     * <p>
+     * <p/>
      * 1. overScrollBy be used by OverScroller;
      * 2. onOverScrolled should be override when use View.overScrollBy;
      * 3. When use View.overScrollBy, then should give:
      * - 3.1 override computeVerticalScrollRange
      * - 3.2 override computeVerticalScrollExtent
-     * <p>
+     * <p/>
      * Notice: only fling will trigger these operation, start won't
      ************************************************************************************************/
     public boolean overScrollBy(int dx, int dy, int sx, int sy, int srx, int sry, int osx, int osy, boolean tv) {
