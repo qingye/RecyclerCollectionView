@@ -181,7 +181,6 @@ public class RecyclerCollectionView extends ViewGroup {
     }
 
     public void onComplete() {
-        Log.e("onComplete");
         releaseRefresh(0);
     }
 
@@ -545,9 +544,6 @@ public class RecyclerCollectionView extends ViewGroup {
                         if (j < column) {
                             posY = getChildAt(childCount - 1).getTop();
                         } else {
-                            if (getChildAt(childCount + index) == null) {
-                                Log.e("fillSectionView", sectionPath);
-                            }
                             posY = getChildAt(childCount + index).getBottom();
                         }
                     }
