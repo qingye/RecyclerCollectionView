@@ -18,4 +18,9 @@ public class ViewType {
     public static final int SECTION_FOOTER = 0x3;
     public static final int VIEW_HEADER_REFRESH = 0x4;
     public static final int VIEW_FOOTER_REFRESH = 0x5;
+
+    /******************************************************************************************
+     * Section Item + Swap => Section Composite
+     ******************************************************************************************/
+    public static final int SECTION_COMPOSITE = 0x6;
 }
