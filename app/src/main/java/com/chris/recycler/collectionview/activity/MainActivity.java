@@ -50,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
     private void initRecyclerCollectionView() {
         recyclerCollectionView = (RecyclerCollectionView) findViewById(R.id.recyclerCollectionView);
         recyclerCollectionView.setAdapter(new RecyclerCollectionAdapter(this))
+                .setSwap()
                 .setRefreshHeader(new RefreshHeaderView(this).setOnRefreshListener(new RefreshView.OnRefreshListener() {
                     @Override
                     public void onRefresh() {

@@ -9,6 +9,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.chris.recycler.collectionview.Log;
 import com.chris.recycler.collectionview.R;
 import com.chris.recycler.collectionview.assistant.adapter.base.BaseRecyclerCollectionAdapter;
 import com.chris.recycler.collectionview.constants.ViewType;
@@ -182,6 +183,34 @@ public class RecyclerCollectionAdapter extends BaseRecyclerCollectionAdapter {
     }
 
     @Override
+    public View getSectionSwapView(IndexPath indexPath, View swapView, ViewGroup parent) {
+        SwapViewHolder holder = null;
+        if (swapView == null) {
+            swapView = LayoutInflater.from(context).inflate(R.layout.adapter_recycler_swap_item, null);
+            holder = new SwapViewHolder();
+            holder.tvTop = (TextView) swapView.findViewById(R.id.tvTop);
+            holder.tvDelete = (TextView) swapView.findViewById(R.id.tvDelete);
+            swapView.setTag(holder);
+        } else {
+            holder = (SwapViewHolder) swapView.getTag();
+        }
+
+        holder.tvTop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.e("[Swap] ==> toTop");
+            }
+        });
+        holder.tvDelete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.e("[Swap] ==> delete");
+            }
+        });
+        return swapView;
+    }
+
+    @Override
     public View getSectionItemView(IndexPath indexPath, View itemView, ViewGroup parent) {
         ViewHolder holder = null;
         if (itemView == null) {
@@ -223,5 +252,10 @@ public class RecyclerCollectionAdapter extends BaseRecyclerCollectionAdapter {
 
     class ViewHolder {
         public TextView textView = null;
+    }
+
+    class SwapViewHolder {
+        public TextView tvTop = null;
+        public TextView tvDelete = null;
     }
 }
