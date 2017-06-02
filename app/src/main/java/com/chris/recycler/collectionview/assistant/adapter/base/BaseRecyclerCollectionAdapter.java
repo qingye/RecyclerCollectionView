@@ -184,6 +184,10 @@ public abstract class BaseRecyclerCollectionAdapter {
         return null;
     }
 
+    public View getSectionSwapView(IndexPath indexPath, View swapView, ViewGroup parent) {
+        return null;
+    }
+
     public abstract View getSectionItemView(IndexPath indexPath, View itemView, ViewGroup parent);
 
     /************************************************************************************************

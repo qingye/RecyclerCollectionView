@@ -18,11 +18,19 @@ public final class WrapperRecyclerCollectionAdapter extends BaseRecyclerCollecti
     private BaseRecyclerCollectionAdapter innerAdapter = null;
     private RefreshView refreshHeader = null;
     private RefreshView refreshFooter = null;
+    private boolean swap = false;
 
     public WrapperRecyclerCollectionAdapter(Context context, BaseRecyclerCollectionAdapter adapter) {
         this.innerAdapter = adapter;
     }
 
+    public BaseRecyclerCollectionAdapter getAdapter() {
+        return innerAdapter;
+    }
+
+    /************************************************************************************************
+     * Set & Get RefreshView
+     ************************************************************************************************/
     public void setRefreshHeader(RefreshView refreshHeader) {
         this.refreshHeader = refreshHeader;
     }
@@ -39,8 +47,15 @@ public final class WrapperRecyclerCollectionAdapter extends BaseRecyclerCollecti
         return refreshFooter;
     }
 
-    public BaseRecyclerCollectionAdapter getAdapter() {
-        return innerAdapter;
+    /************************************************************************************************
+     * Only SectionItem && column = 1 can has a swap view
+     ************************************************************************************************/
+    public void setSwap(boolean swap) {
+        this.swap = swap;
+    }
+
+    public boolean isSwap() {
+        return swap;
     }
 
     /************************************************************************************************
@@ -200,6 +215,15 @@ public final class WrapperRecyclerCollectionAdapter extends BaseRecyclerCollecti
             }
         } else if (innerAdapter != null) {
             view = innerAdapter.getSectionView(getInnerSectionPath(sectionPath), convertView, parent);
+        }
+        return view;
+    }
+
+    @Override
+    public View getSectionSwapView(IndexPath indexPath, View swapView, ViewGroup parent) {
+        View view = null;
+        if (innerAdapter != null) {
+            view = innerAdapter.getSectionSwapView(getInnerIndexPath(indexPath), swapView, parent);
         }
         return view;
     }
