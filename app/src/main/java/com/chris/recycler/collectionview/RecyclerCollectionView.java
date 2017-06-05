@@ -1427,7 +1427,7 @@ public class RecyclerCollectionView extends ViewGroup {
             offsetY = header ? 0 : lp.height - max;
             lp.height = max;
         } else {
-            offsetY = header ? 0 : lp.height;
+            offsetY = header ? 0 : (view.getBottom() - view.getTop());
             lp.height = 0;
         }
         view.setLayoutParams(lp);
