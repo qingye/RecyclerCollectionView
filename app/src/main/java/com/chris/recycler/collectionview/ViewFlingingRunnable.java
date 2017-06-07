@@ -108,6 +108,23 @@ public class ViewFlingingRunnable implements Runnable {
                     deltaY = Math.max(-(height - 1), deltaY);
                 }
 
+                if (smoothScroller != null) {
+                    boolean bStop = false;
+                    if (deltaY > 0) { // down
+                        if (parent.firstPosition > smoothScroller.position) {
+                            bStop = true;
+                        }
+                    } else {          // up
+                        if (parent.firstPosition < smoothScroller.position) {
+                            bStop = true;
+                        }
+                    }
+                    if (bStop) {
+                        stop();
+                        return;
+                    }
+                }
+
                 boolean reachEdge = parent.trackScroll(0, deltaY);
                 boolean reachEnd = reachEdge && (deltaY != 0);
                 if (more && !reachEnd) {

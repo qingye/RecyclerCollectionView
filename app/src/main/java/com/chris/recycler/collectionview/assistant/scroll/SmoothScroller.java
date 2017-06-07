@@ -11,10 +11,12 @@ public class SmoothScroller {
         public void scrollFinish(SmoothScroller smoothScroller);
     }
 
+    public int position = 0;
     public SectionPath sectionPath = null;
     private CallbackListener callback = null;
 
-    public SmoothScroller(SectionPath sectionPath, CallbackListener callback) {
+    public SmoothScroller(int position, SectionPath sectionPath, CallbackListener callback) {
+        this.position = position;
         this.sectionPath = sectionPath;
         this.callback = callback;
     }

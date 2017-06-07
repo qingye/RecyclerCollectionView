@@ -178,16 +178,45 @@ public class SwapView extends ViewGroup {
         return child;
     }
 
+    private View getSwapMenuItem() {
+        View child  = null;
+        if (getChildCount() == 2) {
+            child = getChildAt(SWAP_MENU);
+        }
+        return child;
+    }
+
     public void swap(int direction, int deltaX, int deltaY) {
         View child = getSectionItem();
         if (child != null) {
             this.direction = direction;
             if (direction == SwapDirection.HORIZONTAL) {
-                child.offsetLeftAndRight(-deltaX);
+                swapLeftAndRight(child, -deltaX);
             } else if (direction == SwapDirection.VERTICAL) {
                 child.offsetTopAndBottom(-deltaY);
             }
         }
+    }
+
+    private void swapLeftAndRight(View child, int deltaX) {
+        View swapMenu = getSwapMenuItem();
+        if (swapMenu == null) {
+            return;
+        }
+
+        /********************************************************************************************
+         * Can move distance are = [leftEdge, 0];
+         ********************************************************************************************/
+        int leftEdge = -swapMenu.getMeasuredWidth();
+        int left = child.getLeft();
+
+        int dx = deltaX;
+        if (left + deltaX > 0) {
+            dx = -left;
+        } else if (left + deltaX < leftEdge) {
+            dx = leftEdge - left;
+        }
+        child.offsetLeftAndRight(dx);
     }
 
     public void swapViewHint(int x, int y) {
@@ -195,7 +224,7 @@ public class SwapView extends ViewGroup {
             return;
         }
 
-        ViewGroup child = (ViewGroup) getChildAt(SWAP_MENU);
+        ViewGroup child = (ViewGroup) getSwapMenuItem();
         if (x < child.getLeft()) {
             return;
         }

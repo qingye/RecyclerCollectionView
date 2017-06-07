@@ -59,7 +59,6 @@ public class RecyclerCollectionView extends ViewGroup {
      ***********************************************************************************************/
     private int mPosY = 0;
     public int firstPosition = 0;
-    public int touchPosition = 0;
 
     /***********************************************************************************************
      * Refresh Attributes
@@ -205,8 +204,9 @@ public class RecyclerCollectionView extends ViewGroup {
 
     public void smoothToSectionPath(SectionPath sectionPath) {
         int position = getScrollPosition(sectionPath);
-        viewFlingingRunnable.setSmoothScroller(new SmoothScroller(sectionPath, smoothScrollerCB));
-        viewFlingingRunnable.start(0, position > firstPosition ? -10000 : 10000);
+        Log.e("smoothToSectionPath, position = " + position, sectionPath);
+        viewFlingingRunnable.setSmoothScroller(new SmoothScroller(position, sectionPath, smoothScrollerCB));
+        viewFlingingRunnable.start(0, position > firstPosition ? -100000 : 100000);
     }
 
     private int getScrollPosition(SectionPath sp) {
@@ -216,18 +216,18 @@ public class RecyclerCollectionView extends ViewGroup {
 
         SectionPath sectionPath = new SectionPath(sp);
         /********************************************************************************************
-         * 1. Check if has refresh header
+         * 1. Check the specified Section if in the range;
          ********************************************************************************************/
-        if (adapter.getRefreshHeader() != null) {
-            sectionPath.indexPath.section++;
+        int sections = adapter.getAdapter().getSections();
+        if (sectionPath.indexPath.section >= sections - 1) {
+            sectionPath.indexPath.section = sections > 0 ? sections - 1 : 0;
         }
 
         /********************************************************************************************
-         * 2. Check the specified Section if in the range;
+         * 2. Check if has refresh header
          ********************************************************************************************/
-        int sections = adapter.getSections();
-        if (sectionPath.indexPath.section >= sections - 1) {
-            sectionPath.indexPath.section = sections > 0 ? sections - 1 : 0;
+        if (adapter.getRefreshHeader() != null) {
+            sectionPath.indexPath.section++;
         }
 
         /********************************************************************************************
@@ -366,6 +366,7 @@ public class RecyclerCollectionView extends ViewGroup {
             case RCDirection.TOP_TO_BOTTOM:
                 fillDown(findSectionByPosition(firstPosition), mPosY);
                 trackPinnedView(firstPosition, getChildCount());
+                correctGap(true);
                 break;
 
             case RCDirection.BOTTOM_TO_TOP:
@@ -903,7 +904,6 @@ public class RecyclerCollectionView extends ViewGroup {
         switch (event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
                 lastPoint.setPoint((int) event.getX(), (int) event.getY());
-                touchPosition = findTouchIndex((int) event.getX(), (int) event.getY());
                 if (viewFlingingRunnable.getScrollMode() > ScrollMode.NONE) {
                     return true;
                 } else if (swap > SwapDirection.NONE && swapItemView != null) {
