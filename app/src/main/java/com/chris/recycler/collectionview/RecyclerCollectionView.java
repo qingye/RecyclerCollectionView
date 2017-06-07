@@ -206,7 +206,6 @@ public class RecyclerCollectionView extends ViewGroup {
 
     public void smoothToSectionPath(SectionPath sectionPath) {
         int position = getScrollPosition(sectionPath);
-        Log.e("smoothToSectionPath, position = " + position, sectionPath);
         viewFlingingRunnable.setSmoothScroller(new SmoothScroller(position, sectionPath, smoothScrollerCB));
         viewFlingingRunnable.start(0, position > firstPosition ? -100000 : 100000);
     }
@@ -394,8 +393,8 @@ public class RecyclerCollectionView extends ViewGroup {
             case RCDirection.TOP_TO_BOTTOM:
                 fillDown(findSectionByPosition(firstPosition), mPosY);
                 trackPinnedView(firstPosition, getChildCount());
-                correctGap(true);
                 correctScroll();
+                correctGap(true);
                 break;
 
             case RCDirection.BOTTOM_TO_TOP:
