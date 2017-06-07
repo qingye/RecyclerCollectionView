@@ -57,8 +57,9 @@ public class RecyclerCollectionView extends ViewGroup {
     /***********************************************************************************************
      * Visible views' first real-position
      ***********************************************************************************************/
-    private int mPosY = 0;
     public int firstPosition = 0;
+    private int mPosY = 0;
+    private boolean needOffset = false;
 
     /***********************************************************************************************
      * Refresh Attributes
@@ -199,6 +200,7 @@ public class RecyclerCollectionView extends ViewGroup {
     public void scrollToSectionPath(SectionPath sectionPath) {
         firstPosition = getScrollPosition(sectionPath);
         mPosY = 0;
+        checkIfHasPinnedView();
         requestLayout();
     }
 
@@ -239,6 +241,32 @@ public class RecyclerCollectionView extends ViewGroup {
         }
 
         return adapter.getPosition(sectionPath);
+    }
+
+    /************************************************************************************************
+     * If has PinnedView, then we should let the SectionPath that scrollTo under the PinnedView
+     * 1. If pinned = true, then do nothing;
+     * 2. Else check this section if has PinnedView, false then
+     * 3. Check associate;
+     * Condition 2 or 3 true, then should offset that under the PinnedView
+     ************************************************************************************************/
+    private void checkIfHasPinnedView() {
+        SectionPath sectionPath = adapter.getSectionPath(firstPosition);
+        boolean pinned = false;
+        if (sectionPath.sectionType == ViewType.SECTION_HEADER) {
+            pinned = adapter.isSectionHeaderPinned(sectionPath.indexPath);
+        }
+
+        if (!pinned) {
+            needOffset = findCurrentSectionPinnedView(sectionPath) != null;
+        }
+    }
+
+    private void correctScroll() {
+        if (needOffset && pinnedView != null) {
+            trackScroll(0, -pinnedView.getHeight());
+        }
+        needOffset = false;
     }
 
     private SmoothScroller.CallbackListener smoothScrollerCB = new SmoothScroller.CallbackListener() {
@@ -367,6 +395,7 @@ public class RecyclerCollectionView extends ViewGroup {
                 fillDown(findSectionByPosition(firstPosition), mPosY);
                 trackPinnedView(firstPosition, getChildCount());
                 correctGap(true);
+                correctScroll();
                 break;
 
             case RCDirection.BOTTOM_TO_TOP:
@@ -1083,23 +1112,6 @@ public class RecyclerCollectionView extends ViewGroup {
             viewFlingingRunnable.start(initVelocityX, initVelocityY);
         }
         resetVelocityTracker();
-    }
-
-    /************************************************************************************************
-     * Find view index by touch event(getX & getY)
-     ************************************************************************************************/
-    private int findTouchIndex(int motionX, int motionY) {
-        int childCount = getChildCount();
-        int touchIndex = -1;
-        for (int i = 0; i < childCount; i++) {
-            View child = getChildAt(i);
-            if (child.getLeft() <= motionX && motionX < child.getRight() &&
-                    child.getTop() <= motionY && motionY < child.getBottom()) {
-                touchIndex = i;
-                break;
-            }
-        }
-        return firstPosition + touchIndex;
     }
 
     /************************************************************************************************
