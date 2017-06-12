@@ -60,6 +60,7 @@ public class RecyclerCollectionView extends ViewGroup {
     public int firstPosition = 0;
     private int mPosY = 0;
     private boolean needOffset = false;
+    private SectionPath nextSectionPath = null;
 
     /***********************************************************************************************
      * Refresh Attributes
@@ -206,6 +207,7 @@ public class RecyclerCollectionView extends ViewGroup {
 
     public void smoothToSectionPath(SectionPath sectionPath) {
         int position = getScrollPosition(sectionPath);
+        fastSmoothIfNecessary(position);
         viewFlingingRunnable.setSmoothScroller(new SmoothScroller(position, sectionPath, smoothScrollerCB));
         viewFlingingRunnable.start(0, position > firstPosition ? -100000 : 100000);
     }
@@ -240,6 +242,31 @@ public class RecyclerCollectionView extends ViewGroup {
         }
 
         return adapter.getPosition(sectionPath);
+    }
+
+    /************************************************************************************************
+     * If smooth to a long distance (e.g Section(max) -> Section(0)) or
+     * SectionItem(max) -> SectionItem(0) in the same Section, then we should skip some
+     ************************************************************************************************/
+    private void fastSmoothIfNecessary(int position) {
+        int childCount = getChildCount();
+        int distanceGap = position - firstPosition;
+        float gap = Math.abs(distanceGap) / childCount;
+        if (gap > 1.5f) {
+            int pos = -1;
+            if (distanceGap > 0) { // down
+                pos = (int) (position - childCount * 1.5f);
+                nextSectionPath = adapter.getSectionPath(pos);
+                nextSectionPath.sectionType = ViewType.SECTION_HEADER;
+                nextSectionPath.indexPath.item = 0;
+            } else { // up
+                pos = (int) (position + childCount * 1.5f);
+                nextSectionPath = adapter.getSectionPath(pos);
+                nextSectionPath.sectionType = ViewType.SECTION_FOOTER;
+                nextSectionPath.indexPath.item = adapter.getSectionItemInSection(
+                        nextSectionPath.sectionType, nextSectionPath.indexPath.section);
+            }
+        }
     }
 
     /************************************************************************************************
@@ -417,45 +444,59 @@ public class RecyclerCollectionView extends ViewGroup {
      ************************************************************************************************/
     private void fillYGap(boolean down) {
         int count = getChildCount();
-        if (down) {
-            View child = getChildAt(count - 1);
-            LayoutParams lp = (LayoutParams) child.getLayoutParams();
-            SectionPath sectionPath = new SectionPath(lp.sectionPath);
-            sectionPath.indexPath.item++;
+        if (count > 0) {
+            if (down) {
+                View child = getChildAt(count - 1);
+                LayoutParams lp = (LayoutParams) child.getLayoutParams();
+                SectionPath sectionPath = new SectionPath(lp.sectionPath);
+                sectionPath.indexPath.item++;
 
-            /***************************************************************************************
-             * Check when last child's sectionType == SectionItem && its colunm > 1,
-             * then we will get the maximum height!
-             * Last child isn't necessarily in the maximum height of the column
-             ***************************************************************************************/
-            int posY = 0;
-            if (lp.getColumn() > 1) {
-                posY = getChildAt(findBottomIndex(true, sectionPath)).getBottom();
+                /***************************************************************************************
+                 * Check when last child's sectionType == SectionItem && its colunm > 1,
+                 * then we will get the maximum height!
+                 * Last child isn't necessarily in the maximum height of the column
+                 ***************************************************************************************/
+                int posY = 0;
+                if (lp.getColumn() > 1) {
+                    posY = getChildAt(findBottomIndex(true, sectionPath)).getBottom();
+                } else {
+                    posY = count > 0 ? child.getBottom() : getPaddingTop();
+                }
+
+                if (nextSectionPath != null) {
+                    sectionPath = nextSectionPath;
+                    nextSectionPath = null;
+                    firstPosition = adapter.getPosition(sectionPath);
+                }
+                fillDown(sectionPath, posY);
+
             } else {
-                posY = count > 0 ? child.getBottom() : getPaddingTop();
-            }
-            fillDown(sectionPath, posY);
+                View child = getChildAt(0);
+                LayoutParams lp = (LayoutParams) child.getLayoutParams();
+                SectionPath sectionPath = new SectionPath(lp.sectionPath);
+                sectionPath.indexPath.item--;
 
-        } else {
-            View child = getChildAt(0);
-            LayoutParams lp = (LayoutParams) child.getLayoutParams();
-            SectionPath sectionPath = new SectionPath(lp.sectionPath);
-            sectionPath.indexPath.item--;
+                /***************************************************************************************
+                 * Check when last child's sectionType == SectionItem && its colunm > 1,
+                 * then we will get the maximum height (The minimum top)!
+                 * First child isn't necessarily in the maximum height of the column
+                 ***************************************************************************************/
+                int posY = 0;
+                if (lp.getColumn() > 1) {
+                    posY = getChildAt(findTopIndex(sectionPath)).getTop();
+                } else {
+                    posY = count > 0 ? child.getTop() : getBottom() - getPaddingBottom();
+                }
 
-            /***************************************************************************************
-             * Check when last child's sectionType == SectionItem && its colunm > 1,
-             * then we will get the maximum height (The minimum top)!
-             * First child isn't necessarily in the maximum height of the column
-             ***************************************************************************************/
-            int posY = 0;
-            if (lp.getColumn() > 1) {
-                posY = getChildAt(findTopIndex(sectionPath)).getTop();
-            } else {
-                posY = count > 0 ? child.getTop() : getBottom() - getPaddingBottom();
+                if (nextSectionPath != null && posY > 0) {
+                    sectionPath = nextSectionPath;
+                    nextSectionPath = null;
+                    firstPosition = adapter.getPosition(sectionPath);
+                }
+                fillUp(sectionPath, posY);
             }
-            fillUp(sectionPath, posY);
+            correctGap(down);
         }
-        correctGap(down);
     }
 
     /************************************************************************************************
@@ -1578,7 +1619,9 @@ public class RecyclerCollectionView extends ViewGroup {
                 return;
             }
 
-            trackPinnedView(firstVisibleItem, visibleItemCount);
+            if (firstVisibleItem + visibleItemCount < totalItemCount) {
+                trackPinnedView(firstVisibleItem, visibleItemCount);
+            }
         }
     };
 

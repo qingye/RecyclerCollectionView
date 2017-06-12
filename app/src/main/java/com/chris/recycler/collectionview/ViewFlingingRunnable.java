@@ -111,11 +111,11 @@ public class ViewFlingingRunnable implements Runnable {
                 if (smoothScroller != null) {
                     boolean bStop = false;
                     if (deltaY > 0) { // down
-                        if (parent.firstPosition > smoothScroller.position) {
+                        if (parent.firstPosition >= smoothScroller.position) {
                             bStop = true;
                         }
                     } else {          // up
-                        if (parent.firstPosition < smoothScroller.position) {
+                        if (parent.firstPosition <= smoothScroller.position) {
                             bStop = true;
                         }
                     }

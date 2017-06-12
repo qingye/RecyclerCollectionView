@@ -124,6 +124,7 @@ public final class WrapperRecyclerCollectionAdapter extends BaseRecyclerCollecti
             } else if (refreshFooter != null && position + 1 == getCount()) {
                 sectionPath = new SectionPath(ViewType.VIEW_FOOTER_REFRESH, new IndexPath(getSections() - 1, 0));
             } else if (innerAdapter != null) {
+                position = position >= getCount() ? innerAdapter.getCount() : position;
                 sectionPath = innerAdapter.getSectionPath(position - 1);
                 sectionPath.indexPath.section ++; // has RefreshHeader, so section ++
             }
