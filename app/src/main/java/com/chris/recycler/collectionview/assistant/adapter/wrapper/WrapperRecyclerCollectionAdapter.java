@@ -44,6 +44,9 @@ public final class WrapperRecyclerCollectionAdapter extends BaseRecyclerCollecti
     }
 
     public RefreshView getRefreshFooter() {
+        if (innerAdapter == null || innerAdapter.getCount() == 0) {
+            return null;
+        }
         return refreshFooter;
     }
 
@@ -90,7 +93,7 @@ public final class WrapperRecyclerCollectionAdapter extends BaseRecyclerCollecti
         if (refreshHeader != null) {
             count++;
         }
-        if (refreshFooter != null) {
+        if (getRefreshFooter() != null) {
             count++;
         }
         return count;
@@ -99,12 +102,12 @@ public final class WrapperRecyclerCollectionAdapter extends BaseRecyclerCollecti
     @Override
     public int getPosition(SectionPath sectionPath) {
         int position = -1;
-        if (refreshHeader == null && refreshFooter == null && innerAdapter != null) {
+        if (refreshHeader == null && getRefreshFooter() == null && innerAdapter != null) {
             position = innerAdapter.getPosition(sectionPath);
         } else {
             if (refreshHeader != null && sectionPath.indexPath.section == 0) {
                 position = 0;
-            } else if (refreshFooter != null && sectionPath.indexPath.section == getSections() - 1) {
+            } else if (getRefreshFooter() != null && sectionPath.indexPath.section == getSections() - 1) {
                 position = getCount() - 1;
             } else if (innerAdapter != null) {
                 position = innerAdapter.getPosition(getInnerSectionPath(sectionPath)) + 1;
@@ -116,12 +119,12 @@ public final class WrapperRecyclerCollectionAdapter extends BaseRecyclerCollecti
     @Override
     public SectionPath getSectionPath(int position) {
         SectionPath sectionPath = null;
-        if (refreshHeader == null && refreshFooter == null && innerAdapter != null) {
+        if (refreshHeader == null && getRefreshFooter() == null && innerAdapter != null) {
             sectionPath = innerAdapter.getSectionPath(position);
         } else {
             if (refreshHeader != null && position == 0) {
                 sectionPath = new SectionPath(ViewType.VIEW_HEADER_REFRESH, new IndexPath(0, 0));
-            } else if (refreshFooter != null && position + 1 == getCount()) {
+            } else if (getRefreshFooter() != null && position + 1 == getCount()) {
                 sectionPath = new SectionPath(ViewType.VIEW_FOOTER_REFRESH, new IndexPath(getSections() - 1, 0));
             } else if (innerAdapter != null) {
                 position = position >= getCount() ? innerAdapter.getCount() : position;
@@ -138,7 +141,7 @@ public final class WrapperRecyclerCollectionAdapter extends BaseRecyclerCollecti
         if (refreshHeader != null) {
             sections++;
         }
-        if (refreshFooter != null) {
+        if (getRefreshFooter() != null) {
             sections++;
         }
         return sections;
@@ -149,7 +152,7 @@ public final class WrapperRecyclerCollectionAdapter extends BaseRecyclerCollecti
         int column = 0;
         if (refreshHeader != null && section == 0) {
             column = 1;
-        } else if (refreshFooter != null && section == getSections() - 1) {
+        } else if (getRefreshFooter() != null && section == getSections() - 1) {
             column = 1;
         } else if (innerAdapter != null) {
             column = innerAdapter.getSectionItemColumn(getInnerSection(section));
@@ -162,7 +165,7 @@ public final class WrapperRecyclerCollectionAdapter extends BaseRecyclerCollecti
         int count = 0;
         if (refreshHeader != null && section == 0) {
             count = 0;
-        } else if (refreshFooter != null && section == getSections() - 1) {
+        } else if (getRefreshFooter() != null && section == getSections() - 1) {
             count = 0;
         } else if (innerAdapter != null) {
             count = innerAdapter.getHeaderOrFooterInSection(sectionType, getInnerSection(section));
@@ -175,7 +178,7 @@ public final class WrapperRecyclerCollectionAdapter extends BaseRecyclerCollecti
         int count = 0;
         if (refreshHeader != null && section == 0) {
             count = 0;
-        } else if (refreshFooter != null && section == getSections() - 1) {
+        } else if (getRefreshFooter() != null && section == getSections() - 1) {
             count = 0;
         } else if (innerAdapter != null) {
             count = innerAdapter.getItemsInSection(getInnerSection(section));
@@ -188,7 +191,7 @@ public final class WrapperRecyclerCollectionAdapter extends BaseRecyclerCollecti
         int count = 0;
         if (refreshHeader != null && section == 0 && sectionType == ViewType.VIEW_HEADER_REFRESH) {
             count = 1;
-        } else if (refreshFooter != null && section == getSections() - 1 && sectionType == ViewType.VIEW_FOOTER_REFRESH) {
+        } else if (getRefreshFooter() != null && section == getSections() - 1 && sectionType == ViewType.VIEW_FOOTER_REFRESH) {
             count = 1;
         }
         return count;
@@ -198,7 +201,7 @@ public final class WrapperRecyclerCollectionAdapter extends BaseRecyclerCollecti
     public int getViewTypeBySectionType(int sectionType, IndexPath indexPath) {
         int viewType = 0;
         if ((refreshHeader != null && indexPath.section == 0) ||
-                (refreshFooter != null && indexPath.section == getSections() - 1)) {
+                (getRefreshFooter() != null && indexPath.section == getSections() - 1)) {
             viewType = 1;
         } else if (innerAdapter != null) {
             viewType = innerAdapter.getViewTypeBySectionType(sectionType, getInnerIndexPath(indexPath));
@@ -210,7 +213,7 @@ public final class WrapperRecyclerCollectionAdapter extends BaseRecyclerCollecti
     public View getSectionView(SectionPath sectionPath, View convertView, ViewGroup parent) {
         View view = null;
         if ((refreshHeader != null && sectionPath.indexPath.section == 0) ||
-                (refreshFooter != null && sectionPath.indexPath.section == getSections() - 1)) {
+                (getRefreshFooter() != null && sectionPath.indexPath.section == getSections() - 1)) {
             if (sectionPath.sectionType >= ViewType.VIEW_HEADER_REFRESH) {
                 view = getSectionItemView(sectionPath.getIndexPath(), convertView, parent);
             }
@@ -242,7 +245,7 @@ public final class WrapperRecyclerCollectionAdapter extends BaseRecyclerCollecti
     public boolean isSectionHeaderPinned(IndexPath indexPath) {
         boolean ret = false;
         if (refreshHeader != null && indexPath.getSection() > 0 ||
-                refreshFooter != null && indexPath.getSection() < getSections() - 1) {
+                getRefreshFooter() != null && indexPath.getSection() < getSections() - 1) {
             ret = innerAdapter.isSectionHeaderPinned(getInnerIndexPath(indexPath));
         }
         return ret;
@@ -252,7 +255,7 @@ public final class WrapperRecyclerCollectionAdapter extends BaseRecyclerCollecti
     public boolean associateSectionHeaderPinned(IndexPath indexPath) {
         boolean associate = false;
         if (refreshHeader != null && indexPath.section == 0 ||
-                refreshFooter != null && indexPath.section == getSections() - 1) {
+                getRefreshFooter() != null && indexPath.section == getSections() - 1) {
             associate = false;
         } else if (innerAdapter != null){
             associate = innerAdapter.associateSectionHeaderPinned(getInnerIndexPath(indexPath));

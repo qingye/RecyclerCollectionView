@@ -181,6 +181,13 @@ public class RecyclerCollectionView extends ViewGroup {
         return this;
     }
 
+    public RecyclerCollectionView setTopRefresh() {
+        if (adapter.getRefreshHeader() != null && firstPosition == 0) {
+            refreshStatusChange(true, getChildAt(0), adapter.getRefreshHeader().getMaxDistance(), 2);
+        }
+        return this;
+    }
+
     public void onComplete() {
         releaseRefresh(0);
     }
@@ -250,21 +257,23 @@ public class RecyclerCollectionView extends ViewGroup {
      ************************************************************************************************/
     private void fastSmoothIfNecessary(int position) {
         int childCount = getChildCount();
-        int distanceGap = position - firstPosition;
-        float gap = Math.abs(distanceGap) / childCount;
-        if (gap > 1.5f) {
-            int pos = -1;
-            if (distanceGap > 0) { // down
-                pos = (int) (position - childCount * 1.5f);
-                nextSectionPath = adapter.getSectionPath(pos);
-                nextSectionPath.sectionType = ViewType.SECTION_HEADER;
-                nextSectionPath.indexPath.item = 0;
-            } else { // up
-                pos = (int) (position + childCount * 1.5f);
-                nextSectionPath = adapter.getSectionPath(pos);
-                nextSectionPath.sectionType = ViewType.SECTION_FOOTER;
-                nextSectionPath.indexPath.item = adapter.getSectionItemInSection(
-                        nextSectionPath.sectionType, nextSectionPath.indexPath.section);
+        if (childCount > 0) {
+            int distanceGap = position - firstPosition;
+            float gap = Math.abs(distanceGap) / childCount;
+            if (gap > 1.5f) {
+                int pos = -1;
+                if (distanceGap > 0) { // down
+                    pos = (int) (position - childCount * 1.5f);
+                    nextSectionPath = adapter.getSectionPath(pos);
+                    nextSectionPath.sectionType = ViewType.SECTION_HEADER;
+                    nextSectionPath.indexPath.item = 0;
+                } else { // up
+                    pos = (int) (position + childCount * 1.5f);
+                    nextSectionPath = adapter.getSectionPath(pos);
+                    nextSectionPath.sectionType = ViewType.SECTION_FOOTER;
+                    nextSectionPath.indexPath.item = adapter.getSectionItemInSection(
+                            nextSectionPath.sectionType, nextSectionPath.indexPath.section);
+                }
             }
         }
     }
@@ -278,13 +287,15 @@ public class RecyclerCollectionView extends ViewGroup {
      ************************************************************************************************/
     private void checkIfHasPinnedView() {
         SectionPath sectionPath = adapter.getSectionPath(firstPosition);
-        boolean pinned = false;
-        if (sectionPath.sectionType == ViewType.SECTION_HEADER) {
-            pinned = adapter.isSectionHeaderPinned(sectionPath.indexPath);
-        }
+        if (sectionPath != null) {
+            boolean pinned = false;
+            if (sectionPath.sectionType == ViewType.SECTION_HEADER) {
+                pinned = adapter.isSectionHeaderPinned(sectionPath.indexPath);
+            }
 
-        if (!pinned) {
-            needOffset = findCurrentSectionPinnedView(sectionPath) != null;
+            if (!pinned) {
+                needOffset = findCurrentSectionPinnedView(sectionPath) != null;
+            }
         }
     }
 
@@ -1160,16 +1171,24 @@ public class RecyclerCollectionView extends ViewGroup {
      * Check
      ************************************************************************************************/
     private boolean canScrollDown(int deltaY) {
-        int firstPosition = this.firstPosition;
-        int firstTop = getChildAt(0).getTop();
-        return (firstPosition == 0 && firstTop >= getPaddingTop() && deltaY <= 0);
+        boolean can = false;
+        if (getChildCount() > 0) {
+            int firstPosition = this.firstPosition;
+            int firstTop = getChildAt(0).getTop();
+            can = firstPosition == 0 && firstTop >= getPaddingTop() && deltaY <= 0;
+        }
+        return can;
     }
 
     private boolean canScrollUp(int deltaY) {
-        int firstPosition = this.firstPosition;
-        int childCount = getChildCount();
-        int lastBottom = getChildAt(childCount - 1).getBottom();
-        return (firstPosition + childCount == adapter.getCount() && lastBottom <= getHeight() - getPaddingBottom() && deltaY >= 0);
+        boolean can = false;
+        if (getChildCount() > 0) {
+            int firstPosition = this.firstPosition;
+            int childCount = getChildCount();
+            int lastBottom = getChildAt(childCount - 1).getBottom();
+            can = (firstPosition + childCount == adapter.getCount() && lastBottom <= getHeight() - getPaddingBottom() && deltaY >= 0);
+        }
+        return can;
     }
 
     private boolean canScrollRefreshHeader() {
@@ -1285,6 +1304,10 @@ public class RecyclerCollectionView extends ViewGroup {
      ************************************************************************************************/
     private void doScroll(int deltaX, int deltaY) {
         int childCount = getChildCount();
+        if (childCount == 0) {
+            return;
+        }
+
         int firstTop = getChildAt(0).getTop();
         int lastBottom = getChildAt(childCount - 1).getBottom();
         int column = 0;
@@ -1633,23 +1656,25 @@ public class RecyclerCollectionView extends ViewGroup {
         boolean pinned = false;
         if (adapter != null) {
             SectionPath sectionPath = adapter.getSectionPath(firstVisibleItem);
-            if (sectionPath.sectionType == ViewType.SECTION_HEADER && sectionPath.indexPath.item == 0) {
-                pinned = adapter.isSectionHeaderPinned(sectionPath.getIndexPath());
-            }
-
-            if (pinned) {
-                View sectionView = getChildAt(0);
-                if (sectionView.getTop() == getPaddingTop()) {
-                    recyclerPinnedView();
-                } else {
-                    ensurePinnedView(sectionPath, firstVisibleItem, visibleItemCount);
+            if (sectionPath != null) {
+                if (sectionPath.sectionType == ViewType.SECTION_HEADER && sectionPath.indexPath.item == 0) {
+                    pinned = adapter.isSectionHeaderPinned(sectionPath.getIndexPath());
                 }
-            } else {
-                sectionPath = findCurrentSectionPinnedView(sectionPath);
-                if (sectionPath != null) {
-                    ensurePinnedView(sectionPath, firstVisibleItem, visibleItemCount);
+
+                if (pinned) {
+                    View sectionView = getChildAt(0);
+                    if (sectionView.getTop() == getPaddingTop()) {
+                        recyclerPinnedView();
+                    } else {
+                        ensurePinnedView(sectionPath, firstVisibleItem, visibleItemCount);
+                    }
                 } else {
-                    recyclerPinnedView();
+                    sectionPath = findCurrentSectionPinnedView(sectionPath);
+                    if (sectionPath != null) {
+                        ensurePinnedView(sectionPath, firstVisibleItem, visibleItemCount);
+                    } else {
+                        recyclerPinnedView();
+                    }
                 }
             }
         }
@@ -1876,19 +1901,37 @@ public class RecyclerCollectionView extends ViewGroup {
         if (sectionPath.sectionType == ViewType.SECTION_ITEM) {
             params.setColumn(adapter.getSectionItemColumn(sectionPath.indexPath.section));
         } else if (sectionPath.sectionType >= ViewType.VIEW_HEADER_REFRESH && sectionPath.sectionType <= ViewType.VIEW_FOOTER_REFRESH) {
-            if (sectionPath.sectionType == ViewType.VIEW_HEADER_REFRESH && adapter.getRefreshHeader() != null
-                    && adapter.getRefreshHeader().getStatus() == RefreshView.REFRESH_STATUS_NONE) {
-                params.height = 0;
-            } else if (sectionPath.sectionType == ViewType.VIEW_FOOTER_REFRESH && adapter.getRefreshFooter() != null
-                    && adapter.getRefreshFooter().getStatus() == RefreshView.REFRESH_STATUS_NONE) {
-                params.height = 0;
-            }
-            if (params.height <= 0) {
-                params.height = 0;
-            }
+            setRefreshLayout(sectionPath, params);
         }
         if (lp != params) {
             child.setLayoutParams(params);
+        }
+    }
+
+    private void setRefreshLayout(SectionPath sectionPath, LayoutParams params) {
+        if (sectionPath.sectionType == ViewType.VIEW_HEADER_REFRESH && adapter.getRefreshHeader() != null) {
+            switch (adapter.getRefreshHeader().getStatus()) {
+                case RefreshView.REFRESH_STATUS_NONE:
+                    params.height = 0;
+                    break;
+
+                case RefreshView.REFRESH_STATUS_REFRESHING:
+                    params.height = adapter.getRefreshHeader().getMaxDistance();
+                    break;
+            }
+        } else if (sectionPath.sectionType == ViewType.VIEW_FOOTER_REFRESH && adapter.getRefreshFooter() != null) {
+            switch (adapter.getRefreshFooter().getStatus()) {
+                case RefreshView.REFRESH_STATUS_NONE:
+                    params.height = 0;
+                    break;
+
+                case RefreshView.REFRESH_STATUS_REFRESHING:
+                    params.height = adapter.getRefreshFooter().getMaxDistance();
+                    break;
+            }
+        }
+        if (params.height <= 0) {
+            params.height = 0;
         }
     }
     /************************************************************************************************
