@@ -531,7 +531,8 @@ public class RecyclerCollectionView extends ViewGroup {
                     }
                 }
             } else {
-                if (firstPosition + getChildCount() == adapter.getCount() && adapter.getAdapter().getCount() > 0) {
+                if (firstPosition + getChildCount() == adapter.getCount() && adapter.getAdapter().getCount() > 0 &&
+                        (firstPosition > 0 || getChildAt(0).getTop() < getPaddingTop())) {
                     View child = getChildAt(getChildCount() - 1);
                     int height = getHeight() - getPaddingBottom();
                     if (child.getBottom() < height) {
@@ -1388,7 +1389,7 @@ public class RecyclerCollectionView extends ViewGroup {
                 int dy = (int) (deltaY * coefficient);
                 if ((canScrollDown(deltaY) || canScrollRefreshHeader()) &&
                         adapter.getRefreshHeader() != null && adapter.getRefreshHeader().getStatus() < RefreshView.REFRESH_STATUS_REFRESHING &&
-                        (adapter.getRefreshFooter() == null || adapter.getRefreshFooter().getStatus() < RefreshView.REFRESH_STATUS_REFRESHING)) {
+                        (adapter.getRefreshFooter() == null || adapter.getRefreshFooter().getStatus() == RefreshView.REFRESH_STATUS_NONE)) {
                     /*******************************************************************************
                      * Pull Down For Refresh
                      *******************************************************************************/
@@ -1397,7 +1398,7 @@ public class RecyclerCollectionView extends ViewGroup {
                     isHeader = true;
                 } else if ((canScrollUp(deltaY) || canScrollRefreshFooter()) &&
                         adapter.getRefreshFooter() != null && adapter.getRefreshFooter().getStatus() < RefreshView.REFRESH_STATUS_REFRESHING &&
-                        (adapter.getRefreshHeader() == null || adapter.getRefreshHeader().getStatus() < RefreshView.REFRESH_STATUS_REFRESHING)) {
+                        (adapter.getRefreshHeader() == null || adapter.getRefreshHeader().getStatus() == RefreshView.REFRESH_STATUS_NONE)) {
                     /*******************************************************************************
                      * Pull Up For Load
                      *******************************************************************************/
